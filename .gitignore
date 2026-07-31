@@ -1,0 +1,22 @@
+# Virtual Environment
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Audio files
+data/raw_audio/
+
+# Generated transcription outputs
+data/transcripts/
+
+# Whisper output files in project root (if any)
+TE*.txt
+TE*.json
+TE*.srt
+TE*.vtt
+TE*.tsv
+
+# Model cache (if downloaded locally)
+models/
