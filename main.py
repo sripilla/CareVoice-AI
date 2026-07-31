@@ -1,24 +1,15 @@
-from speech.transcriber import SpeechTranscriber
+from careinsight.engine import CareVoiceEngine
 
 
 def main():
 
     AUDIO_FILE = "data/raw_audio/telugu/TE001.wav"
-    OUTPUT_FILE = "data/transcripts/TE001.txt"
 
-    transcriber = SpeechTranscriber(model_name="large-v3")
+    engine = CareVoiceEngine()
 
-    transcript = transcriber.transcribe(AUDIO_FILE)
+    report = engine.process_audio(AUDIO_FILE)
 
-    print("\n========== TRANSCRIPT ==========\n")
-    print(transcript)
-
-    transcriber.save_transcript(
-        transcript=transcript,
-        output_path=OUTPUT_FILE
-    )
-
-    print("\nSpeech module completed successfully.")
+    print(report["clinical_report"])
 
 
 if __name__ == "__main__":

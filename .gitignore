@@ -1,6 +1,8 @@
 # Virtual Environment
 .venv/
 
+.DS_Store
+
 # Python
 __pycache__/
 *.py[cod]
