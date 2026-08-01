@@ -4,6 +4,7 @@ from careinsight.summarizer import MedicalSummarizer
 from careinsight.extractor import MedicalExtractor
 from careinsight.risk_assessor import RiskAssessor
 from careinsight.report_generator import ReportGenerator
+from database.database import DatabaseManager
 
 
 class CareVoiceEngine:
@@ -26,7 +27,13 @@ class CareVoiceEngine:
 
         self.report_generator = ReportGenerator()
 
+        self.report_generator = ReportGenerator()
+
+        self.database = DatabaseManager()
+
         print("\nAll modules loaded successfully.\n")
+
+
 
     def process_audio(self, audio_path: str):
 
@@ -107,6 +114,7 @@ class CareVoiceEngine:
         # Final Output
         # =====================================================
 
+
         report = {
             "telugu_transcript": telugu_text,
             "english_transcript": english_text,
@@ -115,5 +123,7 @@ class CareVoiceEngine:
             "risk": risk,
             "clinical_report": clinical_report,
         }
+
+        self.database.save_report(report)
 
         return report

@@ -22,3 +22,5 @@ TE*.tsv
 
 # Model cache (if downloaded locally)
 models/
+
+database/*.db
