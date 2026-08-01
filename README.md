@@ -313,6 +313,3 @@ FastAPI automatically generates interactive API documentation.
 
 ---
 
-# 📄 License
-
-This project is developed for academic and educational purposes as part of a B.Tech Artificial Intelligence & Machine Learning curriculum.
