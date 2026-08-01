@@ -1,119 +1,151 @@
 from datetime import datetime
 
+from config import (
+    REPORT_DATE_FORMAT,
+    REPORT_SEPARATOR,
+    REPORT_SUB_SEPARATOR,
+    REPORT_TITLE,
+)
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class ReportGenerator:
+    """
+    Generate a formatted clinical report.
+    """
 
-    def generate(self, summary, patient, risk):
+    def generate(
+        self,
+        summary: str,
+        patient: dict,
+        risk: dict,
+    ) -> str:
+        """
+        Generate the complete clinical report.
+        """
 
-        # ==========================================
-        # Patient Information
-        # ==========================================
+        logger.info("Generating clinical report...")
 
-        name = patient["patient_name"] or "Unknown"
-        age = patient["age"] or "Unknown"
-        duration = patient["duration"] or "Not specified"
-
-        symptoms = ", ".join(patient["symptoms"]) or "Not reported"
-        conditions = ", ".join(patient["conditions"]).lower() or "none"
-        medications = ", ".join(patient["medications"]) or "none"
-
-        # ==========================================
-        # Formatted Lists
-        # ==========================================
-
-        symptoms_text = (
-            "\n".join(
-                f"- {symptom}"
-                for symptom in patient["symptoms"]
-            )
-            if patient["symptoms"]
-            else "- None"
+        timestamp = datetime.now().strftime(
+            REPORT_DATE_FORMAT
         )
-
-        conditions_text = (
-            "\n".join(
-                f"- {condition}"
-                for condition in patient["conditions"]
-            )
-            if patient["conditions"]
-            else "- None"
-        )
-
-        medications_text = (
-            "\n".join(
-                f"- {medicine}"
-                for medicine in patient["medications"]
-            )
-            if patient["medications"]
-            else "- None"
-        )
-
-        # ==========================================
-        # Timestamp
-        # ==========================================
-
-        timestamp = datetime.now().strftime("%d-%m-%Y %H:%M")
-
-        # ==========================================
-        # Report
-        # ==========================================
 
         report = f"""
-============================================================
-                CAREVOICE AI CLINICAL REPORT
-============================================================
+{REPORT_SEPARATOR}
+                {REPORT_TITLE}
+{REPORT_SEPARATOR}
 
 Generated On : {timestamp}
 
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 Clinical Summary
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 
-A {age}-year-old patient ({name}) reports
-{symptoms} for {duration}.
+{self._clinical_summary(patient, risk)}
 
-The patient has {conditions}
-and is currently taking {medications}.
-
-Based on the extracted clinical information,
-the patient is classified as
-
-{risk['risk_level']} Risk
-(Risk Score: {risk['risk_score']}).
-
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 Conversation Summary (BART)
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 
 {summary}
 
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 Extracted Medical Information
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 
-Patient Name : {name}
-Age          : {age}
+Patient Name : {patient.get("patient_name") or "Unknown"}
+Age          : {patient.get("age") or "Unknown"}
 
 Symptoms
-{symptoms_text}
+{self._format_list(patient.get("symptoms", []))}
 
 Conditions
-{conditions_text}
+{self._format_list(patient.get("conditions", []))}
 
 Medications
-{medications_text}
+{self._format_list(patient.get("medications", []))}
 
 Duration
-- {duration}
+- {patient.get("duration") or "Not specified"}
 
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 Risk Assessment
-------------------------------------------------------------
+{REPORT_SUB_SEPARATOR}
 
-Risk Score : {risk['risk_score']}
-Risk Level : {risk['risk_level']}
+Risk Score : {risk["risk_score"]}
+Risk Level : {risk["risk_level"]}
 
-============================================================
+{REPORT_SEPARATOR}
 """
 
+        logger.info(
+            "Clinical report generated successfully."
+        )
+
         return report
+
+    # ======================================================
+    # Helper Methods
+    # ======================================================
+
+    def _clinical_summary(
+        self,
+        patient: dict,
+        risk: dict,
+    ) -> str:
+        """
+        Generate the clinical summary paragraph.
+        """
+
+        name = patient.get("patient_name") or "Unknown"
+
+        age = patient.get("age") or "Unknown"
+
+        duration = (
+            patient.get("duration")
+            or "Not specified"
+        )
+
+        symptoms = (
+            ", ".join(patient.get("symptoms", []))
+            or "Not reported"
+        )
+
+        conditions = (
+            ", ".join(patient.get("conditions", [])).lower()
+            or "none"
+        )
+
+        medications = (
+            ", ".join(patient.get("medications", []))
+            or "none"
+        )
+
+        return (
+            f"A {age}-year-old patient ({name}) reports\n"
+            f"{symptoms} for {duration}.\n\n"
+            f"The patient has {conditions}\n"
+            f"and is currently taking {medications}.\n\n"
+            f"Based on the extracted clinical information,\n"
+            f"the patient is classified as\n\n"
+            f"{risk['risk_level']} Risk\n"
+            f"(Risk Score: {risk['risk_score']})."
+        )
+
+    def _format_list(
+        self,
+        items: list,
+    ) -> str:
+        """
+        Format a list as bullet points.
+        """
+
+        if not items:
+            return "- None"
+
+        return "\n".join(
+            f"- {item}"
+            for item in items
+        )

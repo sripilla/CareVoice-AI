@@ -1,13 +1,25 @@
 from careinsight.engine import CareVoiceEngine
+from config import DEFAULT_AUDIO_FILE
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def main():
+    """
+    Run the CareVoice AI pipeline using
+    the default sample audio file.
+    """
 
-    AUDIO_FILE = "data/raw_audio/telugu/TE001.wav"
+    logger.info("Starting CareVoice AI...")
 
     engine = CareVoiceEngine()
 
-    report = engine.process_audio(AUDIO_FILE)
+    report = engine.process_audio(
+        str(DEFAULT_AUDIO_FILE)
+    )
+
+    logger.info("Clinical report generated successfully.")
 
     print(report["clinical_report"])
 

@@ -1,20 +1,30 @@
+from careinsight.extractor import MedicalExtractor
+from careinsight.report_generator import ReportGenerator
+from careinsight.risk_assessor import RiskAssessor
+from careinsight.summarizer import MedicalSummarizer
+from config import WHISPER_MODEL
+from database.database import DatabaseManager
 from speech.transcriber import SpeechTranscriber
 from translation.translator import Translator
-from careinsight.summarizer import MedicalSummarizer
-from careinsight.extractor import MedicalExtractor
-from careinsight.risk_assessor import RiskAssessor
-from careinsight.report_generator import ReportGenerator
-from database.database import DatabaseManager
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class CareVoiceEngine:
+    """
+    Main orchestration engine for the CareVoice AI pipeline.
+    """
 
     def __init__(self):
+        """
+        Initialize all AI pipeline components.
+        """
 
-        print("\n========== Initializing CareVoice AI ==========")
+        logger.info("Initializing CareVoice AI...")
 
         self.transcriber = SpeechTranscriber(
-            model_name="large-v3"
+            model_name=WHISPER_MODEL,
         )
 
         self.translator = Translator()
@@ -27,96 +37,187 @@ class CareVoiceEngine:
 
         self.report_generator = ReportGenerator()
 
-        self.report_generator = ReportGenerator()
-
         self.database = DatabaseManager()
 
-        print("\nAll modules loaded successfully.\n")
+        logger.info("CareVoice AI initialized successfully.")
 
+    # ======================================================
+    # Public API
+    # ======================================================
 
+    def process_audio(
+        self,
+        audio_path: str,
+    ) -> dict:
+        """
+        Execute the complete CareVoice AI pipeline.
+        """
 
-    def process_audio(self, audio_path: str):
+        logger.info("Processing audio: %s", audio_path)
 
-        # =====================================================
-        # STEP 1 : Speech Recognition
-        # =====================================================
-
-        print("========== STEP 1 : Speech Recognition ==========\n")
-
-        telugu_text = self.transcriber.transcribe(audio_path)
-
-        # =====================================================
-        # STEP 2 : Translation
-        # =====================================================
-
-        print("\n========== STEP 2 : Translation ==========\n")
-
-        english_text = self.translator.translate(
-            telugu_text
+        transcript, language = self._transcribe_audio(
+            audio_path
         )
 
-        print(english_text)
+        english_text = self._translate_text(
+            transcript,
+            language,
+        )
 
-        # =====================================================
-        # STEP 3 : Summarization
-        # =====================================================
-
-        print("\n========== STEP 3 : Summarization ==========\n")
-
-        summary = self.summarizer.summarize_text(
+        summary = self._summarize_text(
             english_text
         )
 
-        print(summary)
-
-        # =====================================================
-        # STEP 4 : Medical Information Extraction
-        # =====================================================
-
-        print(
-            "\n========== STEP 4 : Medical Entity Extraction ==========\n"
-        )
-
-        patient = self.extractor.extract(
+        patient = self._extract_patient(
             english_text
         )
 
-        for key, value in patient.items():
-            print(f"{key}: {value}")
-
-        # =====================================================
-        # STEP 5 : Risk Assessment
-        # =====================================================
-
-        print("\n========== STEP 5 : Risk Assessment ==========\n")
-
-        risk = self.risk_assessor.assess(
+        risk = self._assess_risk(
             patient
         )
 
-        print(risk)
-
-        # =====================================================
-        # STEP 6 : Clinical Report Generation
-        # =====================================================
-
-        print(
-            "\n========== STEP 6 : Clinical Report Generation ==========\n"
+        clinical_report = self._generate_report(
+            summary,
+            patient,
+            risk,
         )
 
-        clinical_report = self.report_generator.generate(
+        report = self._build_report(
+            transcript=transcript,
+            language=language,
+            english_text=english_text,
+            summary=summary,
+            patient=patient,
+            risk=risk,
+            clinical_report=clinical_report,
+        )
+
+        self._save_report(report)
+
+        logger.info("Audio processing completed successfully.")
+
+        return report
+
+    # ======================================================
+    # Pipeline Steps
+    # ======================================================
+
+    def _transcribe_audio(
+        self,
+        audio_path: str,
+    ) -> tuple[str, str]:
+        """
+        Perform speech recognition.
+        """
+
+        logger.info("Step 1: Speech Recognition")
+
+        speech = self.transcriber.transcribe(
+            audio_path
+        )
+
+        return (
+            speech["transcript"],
+            speech["language"],
+        )
+
+    def _translate_text(
+        self,
+        transcript: str,
+        language: str,
+    ) -> str:
+        """
+        Translate transcript into English.
+        """
+
+        logger.info("Step 2: Translation")
+
+        return self.translator.translate(
+            transcript,
+            language,
+        )
+
+    def _summarize_text(
+        self,
+        english_text: str,
+    ) -> str:
+        """
+        Generate a clinical summary.
+        """
+
+        logger.info("Step 3: Summarization")
+
+        return self.summarizer.summarize_text(
+            english_text
+        )
+
+    def _extract_patient(
+        self,
+        english_text: str,
+    ) -> dict:
+        """
+        Extract structured medical information.
+        """
+
+        logger.info("Step 4: Medical Entity Extraction")
+
+        return self.extractor.extract(
+            english_text
+        )
+
+    def _assess_risk(
+        self,
+        patient: dict,
+    ) -> dict:
+        """
+        Assess patient risk.
+        """
+
+        logger.info("Step 5: Risk Assessment")
+
+        return self.risk_assessor.assess(
+            patient
+        )
+
+    def _generate_report(
+        self,
+        summary: str,
+        patient: dict,
+        risk: dict,
+    ) -> str:
+        """
+        Generate the clinical report.
+        """
+
+        logger.info("Step 6: Clinical Report Generation")
+
+        return self.report_generator.generate(
             summary=summary,
             patient=patient,
             risk=risk,
         )
 
-        # =====================================================
-        # Final Output
-        # =====================================================
+    # ======================================================
+    # Report Management
+    # ======================================================
 
+    def _build_report(
+        self,
+        transcript: str,
+        language: str,
+        english_text: str,
+        summary: str,
+        patient: dict,
+        risk: dict,
+        clinical_report: str,
+    ) -> dict:
+        """
+        Build the final response object.
+        """
 
-        report = {
-            "telugu_transcript": telugu_text,
+        return {
+            "original_transcript": transcript,
+            "detected_language": language,
             "english_transcript": english_text,
             "summary": summary,
             "patient": patient,
@@ -124,6 +225,14 @@ class CareVoiceEngine:
             "clinical_report": clinical_report,
         }
 
-        self.database.save_report(report)
+    def _save_report(
+        self,
+        report: dict,
+    ):
+        """
+        Persist the report to the database.
+        """
 
-        return report
+        logger.info("Saving report to database.")
+
+        self.database.save_report(report)
