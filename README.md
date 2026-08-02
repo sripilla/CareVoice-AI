@@ -1,73 +1,113 @@
-# 🏥 Multilingual Clinical Speech Analysis and Intelligent Report Generation
+# 🏥 CareVoice AI
+### Multilingual Clinical Speech Analysis and Intelligent Report Generation
 
-## 📌 Project Overview
+<p align="center">
 
-This project is an AI-powered healthcare application that converts multilingual clinical speech into structured clinical reports.
+AI-powered healthcare assistant that converts multilingual patient speech into structured clinical reports using Speech Recognition, Machine Translation, Natural Language Processing, and Deep Learning.
 
-The system accepts audio conversations in multiple Indian languages (such as Telugu, Hindi, Kannada, Tamil, and English), transcribes the speech into text, translates it into English, extracts important medical information, summarizes the conversation, assesses patient risk, generates a clinical report, and stores the report for future retrieval.
+</p>
 
-This project demonstrates the integration of **Speech Processing**, **Machine Translation**, **Natural Language Processing (NLP)**, **Deep Learning for NLP**, and **REST API Development**.
+---
+
+# 📌 Project Overview
+
+CareVoice AI is an end-to-end AI-powered healthcare application designed to assist in processing multilingual clinical conversations.
+
+The system accepts patient audio recordings in multiple Indian languages, automatically detects the spoken language, transcribes the speech into text, translates it into English, extracts important medical information, summarizes the conversation, assesses clinical risk, generates a structured clinical report, and stores the report for future retrieval through REST APIs.
+
+This project demonstrates the integration of modern AI and NLP technologies including:
+
+- Speech Recognition
+- Machine Translation
+- Natural Language Processing
+- Deep Learning for Text Summarization
+- Clinical Information Extraction
+- REST API Development
+- Database Integration
 
 ---
 
 # 🎯 Objectives
 
-* Convert multilingual speech into text.
-* Detect the spoken language automatically.
-* Translate conversations into English.
-* Extract clinical entities such as symptoms, diseases, medications, and duration.
-* Generate concise clinical summaries.
-* Perform rule-based patient risk assessment.
-* Generate structured clinical reports.
-* Store reports in a database.
-* Provide REST APIs for report management.
+- Convert multilingual patient speech into text.
+- Automatically detect the spoken language.
+- Translate conversations into English.
+- Extract clinical entities such as:
+  - Symptoms
+  - Medical Conditions
+  - Medications
+  - Duration
+  - Patient Information
+- Generate concise clinical summaries.
+- Perform patient risk assessment.
+- Generate structured clinical reports.
+- Store reports in a SQLite database.
+- Provide REST APIs for report management.
 
 ---
 
-# 🎓  Requirements Covered
+# ✨ Features
 
-| Requirement                 | Module             |
-| --------------------------- | ------------------ |
-| Speech Processing           | Faster-Whisper     |
-| Machine Translation         | IndicTrans2 / NLLB |
-| Natural Language Processing | spaCy / SciSpaCy   |
-| NLP with Deep Learning      | PEGASUS / BART     |
-| Backend Development         | FastAPI            |
-| Database                    | SQLite             |
+- 🎙 Multilingual Speech Recognition
+- 🌍 Automatic Language Detection
+- 🌐 English Translation
+- 🩺 Medical Entity Extraction
+- 📝 Clinical Text Summarization
+- ⚠️ Rule-based Risk Assessment
+- 📄 Clinical Report Generation
+- 💾 SQLite Database Storage
+- ⚡ FastAPI REST API
+- 📚 Interactive Swagger Documentation
+
+---
+
+# 🤖 AI Models Used
+
+| Stage | Model |
+|--------|-------|
+| Speech Recognition | Faster-Whisper (large-v3) |
+| Language Detection | Whisper Built-in Language Detection |
+| Machine Translation | Meta NLLB-200 Distilled 600M |
+| Clinical Summarization | Facebook BART Large CNN |
+| Medical NLP | spaCy (`en_core_web_sm`) + EntityRuler |
+| Risk Assessment | Rule-Based Clinical Engine |
+| Report Generation | Template-Based Generator |
 
 ---
 
 # 🏗 System Architecture
 
 ```text
-Patient Audio
-      │
-      ▼
-Speech Recognition
-      │
-      ▼
-Language Detection
-      │
-      ▼
-Machine Translation
-      │
-      ▼
-English Transcript
-      │
- ┌────┴───────────┐
- ▼                ▼
-Medical NLP    Deep Learning NLP
-(Entity)       (Summarization)
-      │            │
-      └─────┬──────┘
-            ▼
-     Risk Assessment
-            ▼
- Clinical Report Generator
-            ▼
-        SQLite Database
-            ▼
-        FastAPI REST API
+                    Patient Audio (.wav)
+                            │
+                            ▼
+         Faster-Whisper (Speech Recognition)
+                            │
+                            ▼
+                Automatic Language Detection
+                            │
+                            ▼
+             NLLB-200 Machine Translation
+                            │
+                            ▼
+                  English Transcript
+                            │
+                ┌───────────┴───────────┐
+                ▼                       ▼
+     spaCy + EntityRuler          BART Summarizer
+  Medical Entity Extraction      Clinical Summary
+                │                       │
+                └───────────┬───────────┘
+                            ▼
+                 Rule-Based Risk Assessment
+                            ▼
+                 Clinical Report Generator
+                            ▼
+                     SQLite Database
+                            ▼
+                      FastAPI REST API
+                            ▼
+                 Streamlit Dashboard (UI)
 ```
 
 ---
@@ -76,55 +116,66 @@ Medical NLP    Deep Learning NLP
 
 ## Programming Language
 
-* Python 3.11+
-
-## Backend
-
-* FastAPI
-* Uvicorn
+- Python 3.11+
 
 ## Speech Processing
 
-* Faster-Whisper (large-v3)
+- Faster-Whisper
+- CTranslate2
 
 ## Machine Translation
 
-* IndicTrans2 *(preferred)*
-* NLLB-200 *(alternative)*
+- Meta NLLB-200 Distilled 600M
 
 ## Natural Language Processing
 
-* spaCy
-* SciSpaCy
-* EntityRuler
+- spaCy
+- EntityRuler
 
-## Deep Learning NLP
+## Deep Learning
 
-* PEGASUS *(preferred)*
-* BART *(alternative)*
+- Facebook BART Large CNN
+
+## Backend
+
+- FastAPI
+- Uvicorn
+- Pydantic
 
 ## Database
 
-* SQLite
+- SQLite
 
-## Report Generation
+## Frontend (MVP)
 
-* Python Templates / Jinja2
+- Streamlit
 
 ---
 
 # 📁 Project Structure
 
 ```text
-MedicalSpeechAssistant/
-│
-├── main.py
-├── config.py
-├── requirements.txt
+CareVoice-AI/
 │
 ├── api/
+│   ├── __init__.py
+│   ├── app.py
 │   ├── routes.py
 │   └── schemas.py
+│
+├── backend/
+│
+├── careinsight/
+│   ├── engine.py
+│   ├── extractor.py
+│   ├── medical_patterns.py
+│   ├── report_generator.py
+│   ├── risk_assessor.py
+│   └── summarizer.py
+│
+├── database/
+│   ├── database.py
+│   └── carevoice.db
 │
 ├── speech/
 │   └── transcriber.py
@@ -132,29 +183,26 @@ MedicalSpeechAssistant/
 ├── translation/
 │   └── translator.py
 │
-├── nlp/
-│   ├── entity_extractor.py
-│   └── medical_patterns.json
+├── frontend/
+│   └── streamlit_app.py
 │
-├── summarization/
-│   └── summarizer.py
-│
-├── risk/
-│   └── risk_engine.py
-│
-├── report/
-│   └── report_generator.py
-│
-├── database/
-│   ├── database.py
-│   └── models.py
+├── utils/
+│   ├── logger.py
+│   └── pdf.py
 │
 ├── data/
 │   ├── raw_audio/
 │   ├── transcripts/
-│   └── reports/
+│   └── metadata/
 │
-└── tests/
+├── uploads/
+├── reports/
+├── tests/
+│
+├── config.py
+├── main.py
+├── requirements.txt
+└── README.md
 ```
 
 ---
@@ -162,28 +210,27 @@ MedicalSpeechAssistant/
 # 🚀 Workflow
 
 1. Upload multilingual patient audio.
-2. Convert speech into text.
+2. Speech-to-Text using Faster-Whisper.
 3. Detect spoken language.
 4. Translate transcript into English.
-5. Extract medical entities.
-6. Generate clinical summary.
-7. Perform risk assessment.
-8. Generate structured report.
+5. Generate clinical summary.
+6. Extract medical entities.
+7. Assess patient risk.
+8. Generate clinical report.
 9. Store report in SQLite.
-10. Return report through REST API.
+10. Return report via FastAPI.
 
 ---
 
 # 📡 REST API Endpoints
 
-| Method | Endpoint                        | Description                        |
-| ------ | ------------------------------- | ---------------------------------- |
-| POST   | `/api/v1/reports`               | Upload audio and generate a report |
-| GET    | `/api/v1/reports`               | Retrieve all reports               |
-| GET    | `/api/v1/reports/{id}`          | Retrieve a specific report         |
-| GET    | `/api/v1/reports/{id}/download` | Download report                    |
-| DELETE | `/api/v1/reports/{id}`          | Delete report                      |
-| GET    | `/health`                       | Health check                       |
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | `/` | Health Check |
+| POST | `/analyze` | Analyze uploaded audio |
+| GET | `/reports` | Retrieve all reports |
+| GET | `/reports/{id}` | Retrieve a report |
+| DELETE | `/reports/{id}` | Delete a report |
 
 ---
 
@@ -199,48 +246,64 @@ Patient speaks in Telugu:
 
 ```json
 {
-  "language": "Telugu",
+  "detected_language": "te",
   "english_transcript": "I have had a fever for three days. I also have a cough.",
-  "entities": {
-    "symptoms": [
-      "Fever",
-      "Cough"
-    ],
-    "duration": "3 days"
-  },
   "summary": "Patient reports fever and cough for three days.",
-  "risk": "Medium"
+  "patient": {
+    "patient_name": "Lakshmi",
+    "age": 70,
+    "symptoms": [
+      "cough",
+      "fever"
+    ],
+    "conditions": [
+      "Hypertension",
+      "Diabetes"
+    ],
+    "medications": [
+      "medication"
+    ],
+    "duration": "three days"
+  },
+  "risk": {
+    "risk_score": 5,
+    "risk_level": "High"
+  }
 }
 ```
 
 ---
 
-# ▶️ Running the Project
+# ⚙️ Installation
 
 ## Clone Repository
 
 ```bash
-git clone <repository-url>
-cd MedicalSpeechAssistant
+git clone https://github.com/<your-username>/CareVoice-AI.git
+cd CareVoice-AI
 ```
+
+---
 
 ## Create Virtual Environment
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
 ### Windows
 
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
-### Linux / macOS
+### macOS / Linux
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
+
+---
 
 ## Install Dependencies
 
@@ -248,20 +311,92 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Start the Server
+---
+
+# ▶️ Running the Project
+
+## Command Line
 
 ```bash
-uvicorn main:app --reload
+python main.py
+```
+
+---
+
+## FastAPI Backend
+
+```bash
+uvicorn api.app:app --reload
+```
+
+---
+
+## Streamlit Frontend
+
+```bash
+streamlit run frontend/streamlit_app.py
 ```
 
 ---
 
 # 📖 API Documentation
 
-FastAPI automatically generates interactive API documentation.
+After starting FastAPI:
 
-* Swagger UI: `http://localhost:8000/docs`
-* ReDoc: `http://localhost:8000/redoc`
+### Swagger UI
+
+```
+http://127.0.0.1:8000/docs
+```
+
+### ReDoc
+
+```
+http://127.0.0.1:8000/redoc
+```
+
+---
+
+# 📊 Sample Pipeline
+
+```text
+Audio
+   │
+   ▼
+Speech Recognition
+   │
+   ▼
+Translation
+   │
+   ▼
+Summarization
+   │
+   ▼
+Medical Entity Extraction
+   │
+   ▼
+Risk Assessment
+   │
+   ▼
+Clinical Report
+   │
+   ▼
+SQLite Storage
+```
+
+---
+
+# 🧪 Testing
+
+The project includes individual test scripts for validating each module.
+
+```text
+test_translation.py
+test_summary.py
+test_extractor.py
+test_risk.py
+test_database.py
+```
 
 ---
 
@@ -269,47 +404,67 @@ FastAPI automatically generates interactive API documentation.
 
 ### Member 1
 
-* Speech Recognition
-* Language Detection
-* Machine Translation
+- Speech Recognition
+- Language Detection
+- Machine Translation
 
 ### Member 2
 
-* Medical Entity Extraction
-* Text Summarization
+- Medical Entity Extraction
+- Clinical Summarization
 
 ### Member 3
 
-* Risk Assessment
-* Report Generation
-* Database
-* FastAPI Integration
+- Risk Assessment
+- Clinical Report Generation
+- Database Integration
+- FastAPI Development
 
 ---
 
 # 🔮 Future Enhancements
 
-* Speech Emotion Recognition
-* Medical Question Answering using RAG
-* Electronic Health Record (EHR) Integration
-* Cloud Deployment
-* Doctor Dashboard
-* Multi-user Authentication
-* PDF Report Generation
-* Advanced Clinical Risk Prediction using Machine Learning
+- Streamlit Dashboard
+- PDF Report Download
+- Doctor Dashboard
+- Patient History Search
+- Electronic Health Record (EHR) Integration
+- Medical Question Answering using RAG
+- Clinical Decision Support using LLMs
+- Cloud Deployment (Docker + AWS/Azure)
+- Authentication & Role-Based Access
+- Machine Learning-Based Risk Prediction
 
 ---
 
 # 📚 References
 
-* Faster-Whisper
-* IndicTrans2
-* spaCy
-* SciSpaCy
-* PEGASUS
-* BART
-* FastAPI
-* SQLite
+- Faster-Whisper
+- Meta NLLB-200
+- Facebook BART
+- spaCy
+- FastAPI
+- SQLite
+- Hugging Face Transformers
+- PyTorch
 
 ---
 
+# 📄 License
+
+This project was developed for academic purposes as part of the **Natural Language Processing Minor Specialisation**.
+
+---
+
+## ⭐ Acknowledgements
+
+This project integrates open-source AI models and frameworks including:
+
+- OpenAI Whisper
+- Faster-Whisper
+- Meta AI
+- Hugging Face
+- spaCy
+- FastAPI Community
+
+---
