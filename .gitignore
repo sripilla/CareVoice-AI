@@ -1,14 +1,12 @@
 # Virtual Environment
 .venv/
 
+# macOS
 .DS_Store
 
 # Python
 __pycache__/
 *.py[cod]
-
-# Audio files
-data/raw_audio/
 
 # Generated transcription outputs
 data/transcripts/
@@ -23,4 +21,5 @@ TE*.tsv
 # Model cache (if downloaded locally)
 models/
 
+# SQLite database
 database/*.db

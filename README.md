@@ -400,27 +400,12 @@ test_database.py
 
 ---
 
-# 👥 Team Responsibilities
 
-### Member 1
+# 🔮 Pending work
 
-- Speech Recognition
-- Language Detection
-- Machine Translation
-
-### Member 2
-
-- Medical Entity Extraction
-- Clinical Summarization
-
-### Member 3
-
-- Risk Assessment
-- Clinical Report Generation
-- Database Integration
-- FastAPI Development
-
----
+- Data refinement (kaggle or custome data creation)
+- Dashboard UI (Streamlit)
+- Refine/test/upgrade models as required
 
 # 🔮 Future Enhancements
 
