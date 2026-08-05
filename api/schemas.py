@@ -70,7 +70,15 @@ class RiskResponse(BaseModel):
 
 class AnalyzeResponse(BaseModel):
 
+    report_id: int = Field(
+        description="ID of the stored report",
+    )
+
     detected_language: str
+
+    language_probability: float = Field(
+        description="Whisper language detection confidence",
+    )
 
     original_transcript: str
 
@@ -83,6 +91,14 @@ class AnalyzeResponse(BaseModel):
     risk: RiskResponse
 
     clinical_report: str
+
+    warnings: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Non-fatal problems encountered while processing, "
+            "such as an unsupported source language"
+        ),
+    )
 
 
 # ==========================================================
@@ -131,6 +147,12 @@ class ReportDetail(BaseModel):
     risk_level: str
 
     clinical_report: str
+
+    detected_language: Optional[str] = None
+
+    original_transcript: Optional[str] = None
+
+    english_transcript: Optional[str] = None
 
 
 # ==========================================================

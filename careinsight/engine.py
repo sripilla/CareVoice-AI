@@ -1,11 +1,9 @@
 from careinsight.extractor import MedicalExtractor
+from careinsight.pipelines import build_pipeline
 from careinsight.report_generator import ReportGenerator
 from careinsight.risk_assessor import RiskAssessor
 from careinsight.summarizer import MedicalSummarizer
-from config import WHISPER_MODEL
 from database.database import DatabaseManager
-from speech.transcriber import SpeechTranscriber
-from translation.translator import Translator
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -16,18 +14,22 @@ class CareVoiceEngine:
     Main orchestration engine for the CareVoice AI pipeline.
     """
 
-    def __init__(self):
+    def __init__(self, pipeline: str = None):
         """
         Initialize all AI pipeline components.
+
+        Parameters
+        ----------
+        pipeline : str
+            Speech-to-English backend ("cascade", "seamless" or
+            "indic"). Defaults to CAREVOICE_PIPELINE.
         """
 
         logger.info("Initializing CareVoice AI...")
 
-        self.transcriber = SpeechTranscriber(
-            model_name=WHISPER_MODEL,
-        )
-
-        self.translator = Translator()
+        # Everything from here down operates on English text, so the
+        # speech front end is swappable without touching it.
+        self.pipeline = build_pipeline(pipeline)
 
         self.summarizer = MedicalSummarizer()
 
@@ -55,14 +57,13 @@ class CareVoiceEngine:
 
         logger.info("Processing audio: %s", audio_path)
 
-        transcript, language = self._transcribe_audio(
-            audio_path
-        )
+        speech = self.pipeline.to_english(audio_path).as_dict()
 
-        english_text = self._translate_text(
-            transcript,
-            language,
-        )
+        transcript = speech["original_transcript"]
+        language = speech["detected_language"]
+        english_text = speech["english_transcript"]
+
+        warnings = list(speech["warnings"])
 
         summary = self._summarize_text(
             english_text
@@ -85,14 +86,16 @@ class CareVoiceEngine:
         report = self._build_report(
             transcript=transcript,
             language=language,
+            language_probability=speech["language_probability"],
             english_text=english_text,
             summary=summary,
             patient=patient,
             risk=risk,
             clinical_report=clinical_report,
+            warnings=warnings,
         )
 
-        self._save_report(report)
+        report["report_id"] = self._save_report(report)
 
         logger.info("Audio processing completed successfully.")
 
@@ -101,41 +104,6 @@ class CareVoiceEngine:
     # ======================================================
     # Pipeline Steps
     # ======================================================
-
-    def _transcribe_audio(
-        self,
-        audio_path: str,
-    ) -> tuple[str, str]:
-        """
-        Perform speech recognition.
-        """
-
-        logger.info("Step 1: Speech Recognition")
-
-        speech = self.transcriber.transcribe(
-            audio_path
-        )
-
-        return (
-            speech["transcript"],
-            speech["language"],
-        )
-
-    def _translate_text(
-        self,
-        transcript: str,
-        language: str,
-    ) -> str:
-        """
-        Translate transcript into English.
-        """
-
-        logger.info("Step 2: Translation")
-
-        return self.translator.translate(
-            transcript,
-            language,
-        )
 
     def _summarize_text(
         self,
@@ -205,11 +173,13 @@ class CareVoiceEngine:
         self,
         transcript: str,
         language: str,
+        language_probability: float,
         english_text: str,
         summary: str,
         patient: dict,
         risk: dict,
         clinical_report: str,
+        warnings: list[str],
     ) -> dict:
         """
         Build the final response object.
@@ -218,21 +188,23 @@ class CareVoiceEngine:
         return {
             "original_transcript": transcript,
             "detected_language": language,
+            "language_probability": language_probability,
             "english_transcript": english_text,
             "summary": summary,
             "patient": patient,
             "risk": risk,
             "clinical_report": clinical_report,
+            "warnings": warnings,
         }
 
     def _save_report(
         self,
         report: dict,
-    ):
+    ) -> int:
         """
-        Persist the report to the database.
+        Persist the report to the database and return its ID.
         """
 
         logger.info("Saving report to database.")
 
-        self.database.save_report(report)
+        return self.database.save_report(report)

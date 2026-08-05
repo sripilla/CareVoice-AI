@@ -1,16 +1,66 @@
 from pathlib import Path
 
-import torch
 from faster_whisper import WhisperModel
 
 from config import (
     DEFAULT_BEAM_SIZE,
+    DEFAULT_CONDITION_ON_PREVIOUS_TEXT,
     DEFAULT_TEMPERATURE,
+    DEFAULT_VAD_FILTER,
+    WHISPER_COMPUTE_TYPE,
+    WHISPER_DEVICE,
     WHISPER_MODEL,
 )
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+# CTranslate2 backends. Anything else has to be downgraded.
+CT2_DEVICES = {"cpu", "cuda"}
+
+
+def _resolve_whisper_device(
+    device: str,
+    compute_type: str,
+) -> tuple:
+    """
+    Map a requested device onto something CTranslate2 supports.
+
+    "auto" resolves through the shared device helper first, so a
+    single CAREVOICE_DEVICE setting works across the whole stack;
+    MPS is then downgraded to CPU because CTranslate2 cannot target
+    Metal.
+    """
+
+    if device == "auto":
+
+        from utils.device import resolve_device
+
+        device = resolve_device("auto")
+
+    if device in CT2_DEVICES:
+        return device, compute_type
+
+    if device == "mps":
+
+        logger.info(
+            "CTranslate2 has no Metal backend, so Whisper runs on "
+            "CPU. Use CAREVOICE_PIPELINE=seamless for GPU-"
+            "accelerated speech on Apple Silicon."
+        )
+
+    else:
+
+        logger.warning(
+            "Device '%s' is not supported by CTranslate2; using CPU.",
+            device,
+        )
+
+    # int8 is the sensible CPU default; float16 is a GPU format.
+    if compute_type == "float16":
+        compute_type = "int8"
+
+    return "cpu", compute_type
 
 
 class SpeechTranscriber:
@@ -26,32 +76,25 @@ class SpeechTranscriber:
         Initialize the Faster Whisper model.
         """
 
-        # --------------------------------------------------
-        # Device Configuration
-        # --------------------------------------------------
-        #
-        # NOTE:
-        # Although Apple Silicon (MPS) may be available,
-        # Faster Whisper is intentionally run on CPU because
-        # it provides more stable and predictable inference
-        # for this project.
-        #
-        # If GPU support is required later, only this section
-        # needs to be modified.
-        # --------------------------------------------------
+        # CTranslate2 (which powers faster-whisper) only has CPU and
+        # CUDA backends -- there is no Metal support, so on Apple
+        # Silicon this runs on CPU no matter what the rest of the
+        # stack does. That is a library limitation, not a tuning
+        # choice: if you need GPU speech recognition on a Mac, use
+        # the 'seamless' pipeline, which runs on MPS through
+        # PyTorch.
 
-        self.device = "cpu"
-        self.compute_type = "int8"
+        self.device, self.compute_type = _resolve_whisper_device(
+            WHISPER_DEVICE,
+            WHISPER_COMPUTE_TYPE,
+        )
 
-        if torch.backends.mps.is_available():
-            logger.info(
-                "Apple Silicon detected. "
-                "Using CPU for stable Faster Whisper inference."
-            )
-        else:
-            logger.info("CPU execution mode enabled.")
-
-        logger.info("Loading Faster Whisper model: %s", model_name)
+        logger.info(
+            "Loading Faster Whisper model: %s (%s, %s)",
+            model_name,
+            self.device,
+            self.compute_type,
+        )
 
         try:
             self.model = WhisperModel(
@@ -92,8 +135,10 @@ class SpeechTranscriber:
             segments, info = self.model.transcribe(
                 audio_path,
                 beam_size=DEFAULT_BEAM_SIZE,
-                vad_filter=False,
-                condition_on_previous_text=False,
+                vad_filter=DEFAULT_VAD_FILTER,
+                condition_on_previous_text=(
+                    DEFAULT_CONDITION_ON_PREVIOUS_TEXT
+                ),
                 temperature=DEFAULT_TEMPERATURE,
             )
 

@@ -1,26 +1,74 @@
 import re
 
-from transformers import AutoTokenizer
-from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+
+from config import (
+    DEVICE,
+    DTYPE,
+    SUMMARIZER_MODEL,
+    SUMMARY_MAX_INPUT_LENGTH,
+    SUMMARY_MAX_LENGTH,
+    SUMMARY_MIN_LENGTH,
+    SUMMARY_NUM_BEAMS,
+    UNWANTED_TRANSLATION_PHRASES,
+)
+from utils.device import describe, resolve_device, resolve_dtype
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class MedicalSummarizer:
+    """
+    Abstractive summarization of the translated consultation
+    using BART.
+    """
 
-    def __init__(self):
+    def __init__(
+        self,
+        model_name: str = SUMMARIZER_MODEL,
+    ):
+        """
+        Initialize the summarization model.
+        """
 
-        print("Loading BART Summarizer...")
+        self.model_name = model_name
 
-        self.model_name = "facebook/bart-large-cnn"
+        self.device = resolve_device(DEVICE)
+        self.dtype = resolve_dtype(self.device, DTYPE)
 
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name
+        logger.info(
+            "Loading summarization model: %s on %s",
+            self.model_name,
+            describe(self.device, self.dtype),
         )
 
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(
-            self.model_name
-        )
+        try:
 
-        print("BART Loaded Successfully!")
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name
+            )
+
+            self.model = (
+                AutoModelForSeq2SeqLM.from_pretrained(
+                    self.model_name,
+                    dtype=self.dtype,
+                )
+                .to(self.device)
+                .eval()
+            )
+
+            logger.info(
+                "Summarization model loaded successfully."
+            )
+
+        except Exception:
+
+            logger.exception(
+                "Failed to load summarization model."
+            )
+
+            raise
 
     def clean_text(self, text: str) -> str:
         """
@@ -52,13 +100,7 @@ class MedicalSummarizer:
         # Remove common translation artifacts
         # ==========================================
 
-        unwanted_phrases = [
-            "during the appendix",
-            "I drink only coughing",
-            "I am drinking rum",
-        ]
-
-        for phrase in unwanted_phrases:
+        for phrase in UNWANTED_TRANSLATION_PHRASES:
 
             text = re.sub(
                 re.escape(phrase),
@@ -103,27 +145,65 @@ class MedicalSummarizer:
 
         cleaned_text = self.clean_text(text)
 
-        print("\n========== CLEANED TEXT ==========\n")
-        print(cleaned_text)
+        if not cleaned_text:
+
+            logger.warning(
+                "Received empty text for summarization."
+            )
+
+            return ""
+
+        logger.debug(
+            "Cleaned text for summarization: %s",
+            cleaned_text,
+        )
 
         inputs = self.tokenizer(
             cleaned_text,
             return_tensors="pt",
             truncation=True,
-            max_length=1024,
+            max_length=SUMMARY_MAX_INPUT_LENGTH,
         )
+
+        input_length = int(inputs["input_ids"].shape[1])
+
+        inputs = inputs.to(self.device)
+
+        # --------------------------------------------------
+        # A short consultation carries less information than
+        # SUMMARY_MIN_LENGTH tokens. Forcing BART to reach that
+        # floor makes it pad the output with invented content,
+        # so return the cleaned transcript instead -- at that
+        # length it already is the summary.
+        # --------------------------------------------------
+
+        if input_length <= SUMMARY_MIN_LENGTH:
+
+            logger.info(
+                "Transcript is shorter than the summary floor "
+                "(%d tokens); returning it unsummarized.",
+                input_length,
+            )
+
+            return cleaned_text
+
+        max_length = min(SUMMARY_MAX_LENGTH, input_length)
+
+        min_length = min(SUMMARY_MIN_LENGTH, max_length - 1)
 
         summary_ids = self.model.generate(
             **inputs,
-            max_length=80,
-            min_length=30,
-            num_beams=4,
+            max_length=max_length,
+            min_length=min_length,
+            num_beams=SUMMARY_NUM_BEAMS,
             early_stopping=True,
         )
 
         summary = self.tokenizer.decode(
-            summary_ids[0],
+            summary_ids[0].cpu(),
             skip_special_tokens=True,
         )
 
-        return summary
+        logger.info("Clinical summary generated.")
+
+        return summary.strip()

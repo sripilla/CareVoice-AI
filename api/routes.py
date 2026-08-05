@@ -1,11 +1,14 @@
-from pathlib import Path
 import shutil
+import uuid
+from pathlib import Path
 
 from fastapi import (
     APIRouter,
     File,
     HTTPException,
+    Query,
     Request,
+    Response,
     UploadFile,
 )
 
@@ -17,10 +20,13 @@ from api.schemas import (
     ReportListItem,
 )
 from config import (
+    KEEP_UPLOADS,
+    MAX_UPLOAD_BYTES,
     SUPPORTED_AUDIO_EXTENSIONS,
     UPLOAD_DIR,
 )
 from utils.logger import get_logger
+from utils.pdf import build_report_pdf
 
 logger = get_logger(__name__)
 
@@ -79,6 +85,10 @@ async def analyze_audio(
             str(file_path)
         )
 
+    except HTTPException:
+
+        raise
+
     except Exception:
 
         logger.exception(
@@ -92,7 +102,14 @@ async def analyze_audio(
 
     finally:
 
-        if file_path.exists():
+        if KEEP_UPLOADS:
+
+            logger.info(
+                "Retained uploaded file for evaluation: %s",
+                file_path,
+            )
+
+        elif file_path.exists():
 
             file_path.unlink()
 
@@ -113,12 +130,28 @@ async def analyze_audio(
 )
 def get_reports(
     request: Request,
+    name: str | None = Query(
+        default=None,
+        description="Filter by patient name (partial match)",
+    ),
+    risk_level: str | None = Query(
+        default=None,
+        description="Filter by risk level: Low, Medium or High",
+    ),
 ):
     """
-    Return all stored reports.
+    Return stored reports, optionally filtered.
     """
 
-    reports = request.app.state.engine.database.get_all_reports()
+    database = request.app.state.engine.database
+
+    if name or risk_level:
+        reports = database.search_reports(
+            name=name,
+            risk_level=risk_level,
+        )
+    else:
+        reports = database.get_all_reports()
 
     return [
         {
@@ -155,6 +188,63 @@ def get_report(
     )
 
     return dict(report)
+
+
+# ==========================================================
+# Download Report as PDF
+# ==========================================================
+
+@router.get(
+    "/reports/{report_id}/pdf",
+    tags=["Reports"],
+    response_class=Response,
+    responses={
+        200: {
+            "content": {"application/pdf": {}},
+            "description": "The clinical report as a PDF.",
+        }
+    },
+)
+def download_report_pdf(
+    report_id: int,
+    request: Request,
+):
+    """
+    Download a stored report as a formatted PDF.
+    """
+
+    report = _get_report_or_404(
+        request,
+        report_id,
+    )
+
+    try:
+
+        pdf_bytes = build_report_pdf(dict(report))
+
+    except Exception:
+
+        logger.exception(
+            "PDF generation failed for report %d",
+            report_id,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate the PDF report.",
+        )
+
+    filename = f"carevoice_report_{report_id}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{filename}"'
+            )
+        },
+    )
 
 
 # ==========================================================
@@ -219,10 +309,15 @@ def _save_uploaded_file(
 
     if extension not in SUPPORTED_AUDIO_EXTENSIONS:
 
+        supported = ", ".join(
+            sorted(SUPPORTED_AUDIO_EXTENSIONS)
+        )
+
         raise HTTPException(
             status_code=400,
             detail=(
-                "Unsupported audio format."
+                f"Unsupported audio format '{extension}'. "
+                f"Supported formats: {supported}."
             ),
         )
 
@@ -231,7 +326,12 @@ def _save_uploaded_file(
         exist_ok=True,
     )
 
-    file_path = UPLOAD_DIR / audio.filename
+    # Browser recordings all arrive with the same filename, so a
+    # unique prefix keeps concurrent uploads from overwriting one
+    # another (and stops a crafted name escaping UPLOAD_DIR).
+    file_path = (
+        UPLOAD_DIR / f"{uuid.uuid4().hex}{extension}"
+    )
 
     with open(
         file_path,
@@ -243,9 +343,25 @@ def _save_uploaded_file(
             buffer,
         )
 
+    size = file_path.stat().st_size
+
+    if size > MAX_UPLOAD_BYTES:
+
+        file_path.unlink()
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Audio file is too large "
+                f"({size // (1024 * 1024)} MB). "
+                f"Limit is {MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+            ),
+        )
+
     logger.info(
-        "Uploaded file saved: %s",
+        "Uploaded file saved: %s (%d bytes)",
         file_path.name,
+        size,
     )
 
     return file_path

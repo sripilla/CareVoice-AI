@@ -23,3 +23,21 @@ models/
 
 # SQLite database
 database/*.db
+
+# Uploaded audio (deleted after processing, but not always)
+uploads/
+
+# Generated reports
+reports/
+
+# Local environment overrides
+.env
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated reports and benchmark output
+*.pdf
+benchmark_results.json

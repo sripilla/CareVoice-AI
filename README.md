@@ -49,15 +49,32 @@ This project demonstrates the integration of modern AI and NLP technologies incl
 # ✨ Features
 
 - 🎙 Multilingual Speech Recognition
+- 🔴 In-browser Microphone Recording
 - 🌍 Automatic Language Detection
 - 🌐 English Translation
 - 🩺 Medical Entity Extraction
 - 📝 Clinical Text Summarization
 - ⚠️ Rule-based Risk Assessment
 - 📄 Clinical Report Generation
+- 🖨 PDF Report Download
+- 🖥 Streamlit Clinician Dashboard
+- 🔎 Report History Search & Filtering
 - 💾 SQLite Database Storage
 - ⚡ FastAPI REST API
 - 📚 Interactive Swagger Documentation
+
+Everything runs **locally**. No API keys, and no audio, transcript or
+patient data leaves the machine.
+
+---
+
+# ⚠️ Medical Disclaimer
+
+CareVoice AI is a **research prototype for clinical decision support
+only. It is not a medical device.** Every output — transcript,
+translation, summary, extracted entities and risk score — is machine
+generated and must be reviewed by a qualified clinician before it is
+relied upon. See [Known Limitations](#-known-limitations).
 
 ---
 
@@ -65,7 +82,7 @@ This project demonstrates the integration of modern AI and NLP technologies incl
 
 | Stage | Model |
 |--------|-------|
-| Speech Recognition | Faster-Whisper (large-v3) |
+| Speech Recognition | Faster-Whisper (`medium` default, `large-v3` optional) |
 | Language Detection | Whisper Built-in Language Detection |
 | Machine Translation | Meta NLLB-200 Distilled 600M |
 | Clinical Summarization | Facebook BART Large CNN |
@@ -78,7 +95,7 @@ This project demonstrates the integration of modern AI and NLP technologies incl
 # 🏗 System Architecture
 
 ```text
-                    Patient Audio (.wav)
+          Patient Audio (recorded live or uploaded)
                             │
                             ▼
          Faster-Whisper (Speech Recognition)
@@ -106,8 +123,10 @@ This project demonstrates the integration of modern AI and NLP technologies incl
                      SQLite Database
                             ▼
                       FastAPI REST API
-                            ▼
-                 Streamlit Dashboard (UI)
+                            │
+                ┌───────────┴───────────┐
+                ▼                       ▼
+     Streamlit Dashboard (UI)      PDF Report Download
 ```
 
 ---
@@ -158,58 +177,55 @@ This project demonstrates the integration of modern AI and NLP technologies incl
 CareVoice-AI/
 │
 ├── api/
-│   ├── __init__.py
-│   ├── app.py
-│   ├── routes.py
-│   └── schemas.py
-│
-├── backend/
+│   ├── app.py               FastAPI app factory
+│   ├── routes.py            REST endpoints
+│   └── schemas.py           Pydantic request/response models
 │
 ├── careinsight/
-│   ├── engine.py
-│   ├── extractor.py
-│   ├── medical_patterns.py
-│   ├── report_generator.py
-│   ├── risk_assessor.py
-│   └── summarizer.py
+│   ├── engine.py            Pipeline orchestrator
+│   ├── extractor.py         spaCy clinical entity extraction
+│   ├── medical_patterns.py  EntityRuler patterns
+│   ├── report_generator.py  Text report template
+│   ├── risk_assessor.py     Rule-based risk scoring
+│   └── summarizer.py        BART summarization
 │
 ├── database/
-│   ├── database.py
-│   └── carevoice.db
+│   └── database.py          SQLite manager + schema migration
 │
 ├── speech/
-│   └── transcriber.py
+│   └── transcriber.py       Faster-Whisper speech recognition
 │
 ├── translation/
-│   └── translator.py
+│   └── translator.py        NLLB-200 translation
 │
 ├── frontend/
-│   └── streamlit_app.py
+│   └── streamlit_app.py     Clinician dashboard (API client)
 │
 ├── utils/
-│   ├── logger.py
-│   └── pdf.py
+│   ├── logger.py            Central logging
+│   └── pdf.py               PDF report rendering (ReportLab)
 │
-├── data/
-│   ├── raw_audio/
-│   ├── transcripts/
-│   └── metadata/
+├── scripts/                 Ad-hoc module demos
+├── tests/                   pytest suite
 │
-├── uploads/
-├── reports/
-├── tests/
+├── data/raw_audio/          Sample recordings
 │
-├── config.py
-├── main.py
+├── config.py                All settings, env-overridable
+├── main.py                  CLI entrypoint
+├── pytest.ini
+├── .env.example
 ├── requirements.txt
 └── README.md
 ```
+
+`uploads/`, `reports/` and `database/carevoice.db` are created at
+runtime and are git-ignored.
 
 ---
 
 # 🚀 Workflow
 
-1. Upload multilingual patient audio.
+1. Record the consultation in the dashboard, or upload audio.
 2. Speech-to-Text using Faster-Whisper.
 3. Detect spoken language.
 4. Translate transcript into English.
@@ -218,7 +234,7 @@ CareVoice-AI/
 7. Assess patient risk.
 8. Generate clinical report.
 9. Store report in SQLite.
-10. Return report via FastAPI.
+10. Review in the dashboard and download the PDF.
 
 ---
 
@@ -228,9 +244,13 @@ CareVoice-AI/
 |---------|----------|-------------|
 | GET | `/` | Health Check |
 | POST | `/analyze` | Analyze uploaded audio |
-| GET | `/reports` | Retrieve all reports |
+| GET | `/reports` | Retrieve reports (`?name=`, `?risk_level=`) |
 | GET | `/reports/{id}` | Retrieve a report |
+| GET | `/reports/{id}/pdf` | Download a report as PDF |
 | DELETE | `/reports/{id}` | Delete a report |
+
+Accepted audio formats: `.wav`, `.mp3`, `.m4a`, `.ogg`, `.webm`,
+`.flac` (decoded through PyAV, so no manual conversion is needed).
 
 ---
 
@@ -246,7 +266,9 @@ Patient speaks in Telugu:
 
 ```json
 {
+  "report_id": 12,
   "detected_language": "te",
+  "language_probability": 0.98,
   "english_transcript": "I have had a fever for three days. I also have a cough.",
   "summary": "Patient reports fever and cough for three days.",
   "patient": {
@@ -268,9 +290,13 @@ Patient speaks in Telugu:
   "risk": {
     "risk_score": 5,
     "risk_level": "High"
-  }
+  },
+  "warnings": []
 }
 ```
+
+Use `report_id` to fetch the formatted PDF:
+`GET /reports/12/pdf`.
 
 ---
 
@@ -311,31 +337,152 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+`en_core_web_sm` is pinned in `requirements.txt`, so no separate
+`spacy download` step is needed.
+
+### Windows prerequisite
+
+PyTorch and CTranslate2 ship native libraries that require the
+**Microsoft Visual C++ Redistributable**. Without it, importing
+`torch` fails with `OSError: [WinError 126] ... c10.dll`. Install it
+once:
+
+```powershell
+winget install --id Microsoft.VCRedist.2015+.x64
+```
+
+or download [vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe).
+
 ---
 
-# ▶️ Running the Project
+# ⚙️ Configuration
 
-## Command Line
+All settings live in `config.py` with working defaults. Anything you
+want to change per machine can be set as an environment variable or in
+a local `.env` file — copy `.env.example` to `.env` to start.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CAREVOICE_PIPELINE` | `cascade` | Speech→English backend: `cascade`, `seamless` or `indic` |
+| `CAREVOICE_DEVICE` | `auto` | `auto` picks cuda → mps → cpu |
+| `CAREVOICE_DTYPE` | `auto` | float16 on CUDA, float32 on MPS/CPU |
+| `CAREVOICE_WHISPER_MODEL` | `medium` | Whisper size; use `large-v3` for best accuracy |
+| `CAREVOICE_WHISPER_DEVICE` | `cpu` | `cpu` or `cuda` |
+| `CAREVOICE_WHISPER_COMPUTE_TYPE` | `int8` | `int8` for CPU, `float16` for CUDA |
+| `CAREVOICE_DATABASE_PATH` | `database/carevoice.db` | SQLite location |
+| `CAREVOICE_API_URL` | `http://127.0.0.1:8000` | Where the dashboard finds the API |
+| `CAREVOICE_API_TIMEOUT` | `1800` | Seconds the dashboard waits for `/analyze` |
+
+The default Whisper model is `medium` to keep CPU inference and the
+first-run download manageable. **`large-v3` is meaningfully more
+accurate on Telugu, Kannada and other Indian languages** — use it for
+demos and any accuracy evaluation:
 
 ```bash
-python main.py
+CAREVOICE_WHISPER_MODEL=large-v3 uvicorn api.app:app
 ```
 
 ---
 
-## FastAPI Backend
+# 🔀 Pipeline Backends
+
+The stages after translation — summarization, entity extraction, risk
+scoring, reporting — all operate on English text and don't care how
+that English was produced. So the speech front end is swappable:
+
+| `CAREVOICE_PIPELINE` | Stack | Notes |
+|---|---|---|
+| `cascade` *(default)* | Whisper → NLLB | Two stages. An ASR slip becomes a confidently wrong English phrase, because the translator can't tell corrupt input from good. |
+| `seamless` | SeamlessM4T v2, speech → English directly | **Recommended for Indian languages.** No intermediate transcript, so no compounding error. Runs on MPS/CUDA. |
+| `indic` | Whisper → IndicTrans2 | Better translator, still a cascade. IndicTrans2 is a **gated** HF repo — accept its terms while signed in, then set `HF_TOKEN`. |
+
+## Why this matters
+
+A patient said *"I have had a headache for two days."* The cascade
+produced:
+
+```
+Telugu speech
+  → ASR heard  రెండ్ రోల్       (not a word — "two days" mangled)
+  → NLLB wrote "the Red Roll"   (fluent, confident, wrong)
+```
+
+Downstream, zero symptoms were extracted and the patient was scored
+**Low** risk. The same speaker in English was scored correctly. The
+`seamless` backend removes the step where a mis-spelt Telugu word can
+be re-read as an unrelated English one.
+
+## Comparing them
+
+```bash
+python -m scripts.benchmark_models --list
+python -m scripts.benchmark_models --audio your_recording.wav \
+    --candidates cascade,seamless-pipeline
+```
+
+The benchmark drives the real pipeline classes, so whichever wins is
+adopted by setting `CAREVOICE_PIPELINE` — no code change.
+
+To keep a recording for repeat testing (uploads are deleted after
+processing by default, since they're patient audio):
+
+```bash
+CAREVOICE_KEEP_UPLOADS=1 uvicorn api.app:app
+```
+
+---
+
+# 🍎 Apple Silicon
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-mac.txt
+
+export PYTORCH_ENABLE_MPS_FALLBACK=1     # required: MPS lacks some ops
+export CAREVOICE_PIPELINE=seamless       # GPU-accelerated speech
+```
+
+**Note:** CTranslate2 — which powers faster-whisper — has **no Metal
+backend**, so the `cascade` pipeline runs on CPU on macOS no matter
+what `CAREVOICE_DEVICE` says. That's a library limitation, not a
+tuning choice. The `seamless` and `indic` backends use PyTorch and do
+run on the GPU.
+
+---
+
+# ▶️ Running the Project
+
+The dashboard is a thin HTTP client over the API, so **start the
+backend first**. Running them as separate processes is deliberate:
+the models load once, in the API process only.
+
+## 1. FastAPI Backend
 
 ```bash
 uvicorn api.app:app --reload
 ```
 
----
+First start downloads several GB of model weights and takes a while.
 
-## Streamlit Frontend
+## 2. Streamlit Dashboard
+
+In a second terminal:
 
 ```bash
 streamlit run frontend/streamlit_app.py
 ```
+
+Then record or upload a consultation, review the extracted findings
+and risk level, and download the PDF.
+
+## Command Line (no server)
+
+```bash
+python main.py
+```
+
+Runs the pipeline against the bundled sample recording.
 
 ---
 
@@ -388,34 +535,68 @@ SQLite Storage
 
 # 🧪 Testing
 
-The project includes individual test scripts for validating each module.
+```bash
+pytest
+```
 
-```text
-test_translation.py
-test_summary.py
-test_extractor.py
-test_risk.py
-test_database.py
+The default run covers risk scoring, persistence and its schema
+migration, the text report, PDF rendering, every API endpoint (against
+a stub engine) and the Streamlit dashboard (via `AppTest`). It loads no
+model weights and finishes in seconds.
+
+The end-to-end pipeline test is marked `slow` and excluded by default
+because it loads Whisper, NLLB and BART:
+
+```bash
+pytest -m slow
+```
+
+Tests whose native dependencies are unavailable are **skipped with a
+visible reason** rather than failing the run — if you see skips
+mentioning `c10.dll`, install the Visual C++ Redistributable described
+above.
+
+Ad-hoc single-module demos live in `scripts/`. Run them as modules
+from the repository root so the package imports resolve:
+
+```bash
+python -m scripts.demo_risk
+python -m scripts.demo_translation
 ```
 
 ---
 
+# 📌 Known Limitations
 
-# 🔮 Pending work
+These are real constraints, not TODOs hidden in the code:
 
-- Data refinement (kaggle or custome data creation)
-- Dashboard UI (Streamlit)
-- Refine/test/upgrade models as required
+- **Summarization** uses `bart-large-cnn`, a *news* summarization
+  model. Summaries read fluently but are not clinically validated —
+  this is the weakest link in the pipeline.
+- **Entity extraction** relies on ~35 hand-written EntityRuler patterns
+  in `careinsight/medical_patterns.py`. Anything outside that
+  vocabulary is missed. Moving to scispaCy/medspaCy is the
+  highest-value upgrade available.
+- **Risk scoring** is a simple additive rule set, not a validated
+  clinical risk model.
+- **Transcription accuracy** scales with Whisper model size; the
+  default `medium` trades accuracy for speed.
+- **Unsupported languages** degrade rather than fail: the transcript is
+  passed through untranslated and the response carries a `warnings`
+  entry noting that the downstream analysis is unreliable.
+- **PDF Indic rendering** — ReportLab does not perform OpenType
+  complex-script shaping, so the original-language transcript appendix
+  renders conjuncts imperfectly. The English report is unaffected, and
+  the dashboard displays the original script correctly.
+
+---
 
 # 🔮 Future Enhancements
 
-- Streamlit Dashboard
-- PDF Report Download
-- Doctor Dashboard
-- Patient History Search
+- Clinical-domain summarization model
+- scispaCy / medspaCy entity extraction
 - Electronic Health Record (EHR) Integration
 - Medical Question Answering using RAG
-- Clinical Decision Support using LLMs
 - Cloud Deployment (Docker + AWS/Azure)
 - Authentication & Role-Based Access
 - Machine Learning-Based Risk Prediction

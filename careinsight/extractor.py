@@ -248,8 +248,12 @@ class MedicalExtractor:
         Extract symptom duration.
         """
 
+        # The optional-s forms matter: an alternation like
+        # (day|days) matches "day" inside "days" and stops there,
+        # which recorded "3 days" as "3 day". The trailing \b keeps
+        # the match from ending mid-word.
         duration = re.search(
-            r"(\d+\s*(day|days|week|weeks|month|months))",
+            r"(\d+\s*(?:days?|weeks?|months?|years?))\b",
             text,
             re.IGNORECASE,
         )
@@ -261,8 +265,8 @@ class MedicalExtractor:
             return
 
         duration = re.search(
-            r"\b(one|two|three|four|five|six|seven|eight|nine|ten)\s+"
-            r"(day|days|week|weeks|month|months)\b",
+            r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+            r"(?:days?|weeks?|months?|years?)\b",
             text,
             re.IGNORECASE,
         )

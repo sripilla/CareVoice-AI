@@ -8,7 +8,7 @@ text = """
 నాకు మూడు రోజులుగా దగ్గు ఉంది.
 """
 
-translation = translator.translate(text)
+translation = translator.translate(text, "te")
 
 print("\nEnglish Translation:\n")
 print(translation)
