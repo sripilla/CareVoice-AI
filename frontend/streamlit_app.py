@@ -1,29 +1,26 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="CareVoice AI",
-    page_icon="🏥",
-    layout="wide"
-)
+from components.sidebar import render_sidebar
 
-st.title("🏥 CareVoice AI")
-st.subheader("Multilingual Clinical Speech Analysis")
 
-st.divider()
+def main():
 
-uploaded_file = st.file_uploader(
-    "Upload Patient Audio",
-    type=["wav", "mp3", "m4a"]
-)
+    st.set_page_config(
+        page_title="CareVoice AI",
+        page_icon="🏥",
+        layout="wide"
+    )
 
-if st.button("Analyze"):
-    if uploaded_file:
-        st.success("Audio uploaded successfully!")
-    else:
-        st.warning("Please upload an audio file.")
+    page = render_sidebar()
 
-st.divider()
+    st.title("🏥 CareVoice AI")
 
-st.header("Results")
+    st.subheader("Multilingual Clinical Speech Analysis")
 
-st.info("No report generated yet.")
+    st.divider()
+
+    st.write(f"Current Page: **{page}**")
+
+
+if __name__ == "__main__":
+    main()
