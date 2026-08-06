@@ -4,6 +4,13 @@ Sidebar component for CareVoice AI.
 
 import streamlit as st
 
+from constants import (
+    APP_TITLE,
+    APP_SUBTITLE,
+    APP_VERSION,
+    PAGES,
+)
+
 
 def render_sidebar():
     """
@@ -11,31 +18,33 @@ def render_sidebar():
 
     Returns
     -------
-    str
-        Selected page.
+    tuple
+        (selected_page, show_processing_details)
     """
 
     with st.sidebar:
 
-        st.title("🏥 CareVoice AI")
-
-        st.caption("Clinical Speech Analysis")
+        st.title(APP_TITLE)
+        st.caption(APP_SUBTITLE)
 
         st.divider()
 
         page = st.radio(
             "Navigation",
-            [
-                "🏠 New Consultation",
-                "📋 Report History",
-                "ℹ️ About"
-            ]
+            PAGES
+        )
+
+        st.divider()
+
+        show_processing_details = st.checkbox(
+            "Show Processing Details",
+            value=False,
+            help="Display the internal AI pipeline used during analysis."
         )
 
         st.divider()
 
         st.success("🟢 System Ready")
+        st.caption(f"Version {APP_VERSION}")
 
-        st.caption("Version 1.0")
-
-    return page
+    return page, show_processing_details
