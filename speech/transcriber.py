@@ -7,10 +7,12 @@ from config import (
     DEFAULT_CONDITION_ON_PREVIOUS_TEXT,
     DEFAULT_TEMPERATURE,
     DEFAULT_VAD_FILTER,
+    PRIMARY_AUDIO_LANGUAGE,
     WHISPER_COMPUTE_TYPE,
     WHISPER_DEVICE,
     WHISPER_MODEL,
 )
+from utils.language import looks_like_english
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -109,7 +111,11 @@ class SpeechTranscriber:
             logger.exception("Failed to load Faster Whisper model.")
             raise
 
-    def transcribe(self, audio_path: str) -> dict:
+    def transcribe(
+        self,
+        audio_path: str,
+        language: str = None,
+    ) -> dict:
         """
         Transcribe an audio file.
 
@@ -117,6 +123,10 @@ class SpeechTranscriber:
         ----------
         audio_path : str
             Path to the audio file.
+
+        language : str, optional
+            Force transcription in this language instead of relying
+            on Whisper's automatic detection.
 
         Returns
         -------
@@ -130,10 +140,17 @@ class SpeechTranscriber:
 
         logger.info("Transcribing audio: %s", audio_path)
 
+        if language:
+            logger.info(
+                "Forcing transcription language: %s",
+                language,
+            )
+
         try:
 
             segments, info = self.model.transcribe(
                 audio_path,
+                language=language,
                 beam_size=DEFAULT_BEAM_SIZE,
                 vad_filter=DEFAULT_VAD_FILTER,
                 condition_on_previous_text=(
@@ -174,6 +191,52 @@ class SpeechTranscriber:
         except Exception:
             logger.exception("Audio transcription failed.")
             raise
+
+    def transcribe_guarded(self, audio_path: str) -> dict:
+        """
+        Transcribe with a guard against language misdetection.
+
+        Whisper can misdetect Indian-language audio as English and
+        emit a romanized transliteration. Untranslatable text like
+        that silently corrupts every downstream stage, so when a
+        transcript detected as "en" does not look like English,
+        transcription is retried with PRIMARY_AUDIO_LANGUAGE forced.
+
+        Returns the usual transcribe() dict plus a "warnings" list.
+        """
+
+        speech = self.transcribe(audio_path)
+
+        warnings = []
+
+        if (
+            speech["language"] == "en"
+            and speech["transcript"].strip()
+            and not looks_like_english(speech["transcript"])
+        ):
+
+            logger.warning(
+                "Transcript detected as English but does not look "
+                "like English (likely a romanized transliteration). "
+                "Retrying with forced language: %s",
+                PRIMARY_AUDIO_LANGUAGE,
+            )
+
+            warnings.append(
+                "The audio was detected as English but the "
+                "transcript did not look like English, so "
+                "transcription was retried in "
+                f"'{PRIMARY_AUDIO_LANGUAGE}'."
+            )
+
+            speech = self.transcribe(
+                audio_path,
+                language=PRIMARY_AUDIO_LANGUAGE,
+            )
+
+        speech["warnings"] = warnings
+
+        return speech
 
     def save_transcript(
         self,

@@ -15,6 +15,7 @@ from config import (
     TRANSLATION_MODEL,
 )
 from utils.device import describe, resolve_device, resolve_dtype
+from utils.language import looks_like_english
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -153,15 +154,35 @@ class Translator:
 
         if language == "en":
 
-            logger.info(
-                "Input language is English. "
-                "Skipping translation."
-            )
+            warnings = []
+
+            if not looks_like_english(text):
+
+                logger.warning(
+                    "Language reported as English but the text "
+                    "does not look like English. It may be a "
+                    "romanized transliteration."
+                )
+
+                warnings.append(
+                    "The transcript was reported as English but "
+                    "does not look like English (possibly a "
+                    "romanized transliteration), so the summary, "
+                    "extracted entities and risk score are "
+                    "unreliable."
+                )
+
+            else:
+
+                logger.info(
+                    "Input language is English. "
+                    "Skipping translation."
+                )
 
             return {
                 "text": text,
                 "translated": False,
-                "warnings": [],
+                "warnings": warnings,
             }
 
         # --------------------------------------------------

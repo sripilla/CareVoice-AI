@@ -102,12 +102,12 @@ class IndicPipeline(SpeechPipeline):
 
         logger.info("Step 1: Speech Recognition")
 
-        speech = self.transcriber.transcribe(audio_path)
+        speech = self.transcriber.transcribe_guarded(audio_path)
 
         transcript = speech["transcript"]
         language = speech["language"]
 
-        warnings = []
+        warnings = list(speech["warnings"])
 
         if not transcript.strip():
 

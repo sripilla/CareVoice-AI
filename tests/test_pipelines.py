@@ -162,6 +162,49 @@ def test_build_pipeline_uses_the_registry(monkeypatch):
 
 
 # ==========================================================
+# Cascade warning propagation
+# ==========================================================
+
+def test_cascade_merges_transcriber_and_translator_warnings():
+    """
+    The misdetection guard's warning and any translation warning
+    must both reach the SpeechResult the engine consumes.
+    """
+
+    from careinsight.pipelines.cascade import CascadePipeline
+
+    pipeline = object.__new__(CascadePipeline)
+
+    class StubTranscriber:
+        def transcribe_guarded(self, audio_path):
+            return {
+                "transcript": "నా పేరు లక్ష్మి.",
+                "language": "te",
+                "language_probability": 1.0,
+                "warnings": ["retried in 'te'"],
+            }
+
+    class StubTranslator:
+        def translate_with_meta(self, text, language):
+            return {
+                "text": "My name is Lakshmi.",
+                "translated": True,
+                "warnings": ["translator warning"],
+            }
+
+    pipeline.transcriber = StubTranscriber()
+    pipeline.translator = StubTranslator()
+
+    result = pipeline.to_english("audio.wav")
+
+    assert result.english_transcript == "My name is Lakshmi."
+    assert result.warnings == [
+        "retried in 'te'",
+        "translator warning",
+    ]
+
+
+# ==========================================================
 # Engine integration
 # ==========================================================
 

@@ -36,7 +36,7 @@ class CascadePipeline(SpeechPipeline):
 
         logger.info("Step 1: Speech Recognition")
 
-        speech = self.transcriber.transcribe(audio_path)
+        speech = self.transcriber.transcribe_guarded(audio_path)
 
         logger.info("Step 2: Translation")
 
@@ -50,5 +50,5 @@ class CascadePipeline(SpeechPipeline):
             original_transcript=speech["transcript"],
             detected_language=speech["language"],
             language_probability=speech["language_probability"],
-            warnings=translation["warnings"],
+            warnings=speech["warnings"] + translation["warnings"],
         )

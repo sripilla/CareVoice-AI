@@ -59,6 +59,30 @@ def test_missing_age_stays_none(extractor):
     assert extractor.extract("I have a fever.")["age"] is None
 
 
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        ("My age is 70 years.", 70),
+        ("Age: 45.", 45),
+        ("My name is Ravi. I am 70.", 70),
+    ],
+)
+def test_extracts_age_from_translated_phrasings(
+    extractor, text, expected
+):
+    """
+    NLLB does not always produce "N years old"; the age must
+    survive the common alternatives.
+    """
+
+    assert extractor.extract(text)["age"] == expected
+
+
+def test_implausible_age_is_rejected(extractor):
+
+    assert extractor.extract("I am 200.")["age"] is None
+
+
 # ==========================================================
 # Duration
 # ==========================================================
@@ -83,6 +107,39 @@ def test_extracts_spelled_out_duration(extractor):
     )
 
     assert data["duration"] == "three days"
+
+
+def test_age_phrase_is_not_read_as_duration(extractor):
+    """
+    Regression: "70 years old" was captured as duration "70 years",
+    shadowing the real "three days".
+    """
+
+    data = extractor.extract(
+        "I am 70 years old. I have had a cough for three days."
+    )
+
+    assert data["age"] == 70
+    assert data["duration"] == "three days"
+
+
+def test_age_in_years_phrasing_is_not_a_duration(extractor):
+
+    data = extractor.extract(
+        "My age is 70 years. I have a cough."
+    )
+
+    assert data["age"] == 70
+    assert data["duration"] is None
+
+
+def test_year_long_durations_still_count(extractor):
+
+    data = extractor.extract(
+        "I have had diabetes for 5 years."
+    )
+
+    assert data["duration"] == "5 years"
 
 
 # ==========================================================

@@ -123,6 +123,25 @@ def test_english_passes_through_untranslated(translator):
     assert result["warnings"] == []
 
 
+def test_english_label_on_non_english_text_warns(translator):
+    """
+    The failure this guards: Whisper misdetects Telugu audio as
+    English and emits a romanized transliteration, which used to
+    sail through the "en" skip and corrupt every later stage
+    silently.
+    """
+
+    result = translator.translate_with_meta(
+        "No Peru Lakshmi. Gatamudu Rozruluga Naku Daggu Peryu "
+        "Telekpati Jhuram Wunnai.",
+        "en",
+    )
+
+    assert result["translated"] is False
+    assert len(result["warnings"]) == 1
+    assert "unreliable" in result["warnings"][0]
+
+
 def test_unsupported_language_degrades_with_a_warning(translator):
 
     # French is not in LANGUAGE_MAP. The old behaviour raised

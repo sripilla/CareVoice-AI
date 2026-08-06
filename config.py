@@ -134,6 +134,17 @@ DEFAULT_TEMPERATURE = 0.0
 DEFAULT_VAD_FILTER = False
 DEFAULT_CONDITION_ON_PREVIOUS_TEXT = False
 
+# Whisper sometimes misdetects Indian-language audio as English and
+# emits a romanized transliteration instead of native script. When a
+# transcript detected as "en" fails the English heuristic
+# (utils/language.py), transcription is retried with this language
+# forced so the translator receives native-script text.
+PRIMARY_AUDIO_LANGUAGE = _env("CAREVOICE_PRIMARY_LANGUAGE", "te")
+
+# Minimum fraction of common-English tokens for a transcript to be
+# accepted as English.
+ENGLISH_WORD_RATIO_THRESHOLD = 0.35
+
 # ==========================================================
 # Translation (NLLB)
 # ==========================================================

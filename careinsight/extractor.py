@@ -227,17 +227,32 @@ class MedicalExtractor:
         Extract patient age.
         """
 
-        age = re.search(
-            r"(\d+)\s*years?\s*old",
-            text,
-            re.IGNORECASE,
-        )
+        # Translated phrasing varies: "I am 70 years old",
+        # "My age is 70 years", "Age: 70", "I am 70".
 
-        if age:
+        age_patterns = [
+            r"(\d{1,3})\s*years?\s*old",
+            r"\bage\s*(?:is|:)?\s*(\d{1,3})\b",
+            r"\bI\s+am\s+(\d{1,3})\b",
+        ]
 
-            data["age"] = int(
-                age.group(1)
+        for pattern in age_patterns:
+
+            age = re.search(
+                pattern,
+                text,
+                re.IGNORECASE,
             )
+
+            if age:
+
+                value = int(age.group(1))
+
+                if 0 < value <= 120:
+
+                    data["age"] = value
+
+                    return
 
     def _extract_duration(
         self,
@@ -252,8 +267,13 @@ class MedicalExtractor:
         # (day|days) matches "day" inside "days" and stops there,
         # which recorded "3 days" as "3 day". The trailing \b keeps
         # the match from ending mid-word.
+        #
+        # Year-forms are matched last and only outside age phrases:
+        # "70 years old" and "my age is 70 years" state how old the
+        # patient is, not how long they have been unwell.
+
         duration = re.search(
-            r"(\d+\s*(?:days?|weeks?|months?|years?))\b",
+            r"(\d+\s*(?:days?|weeks?|months?))\b",
             text,
             re.IGNORECASE,
         )
@@ -266,7 +286,35 @@ class MedicalExtractor:
 
         duration = re.search(
             r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+"
-            r"(?:days?|weeks?|months?|years?)\b",
+            r"(?:days?|weeks?|months?)\b",
+            text,
+            re.IGNORECASE,
+        )
+
+        if duration:
+
+            data["duration"] = duration.group(0)
+
+            return
+
+        # (?<!\d) stops a blocked match from restarting inside the
+        # same number ("age is 70 years" must not yield "0 years").
+        duration = re.search(
+            r"(?<!\bage is )(?<!\bage: )(?<!\d)"
+            r"(\d+\s*years?(?!\s*old))\b",
+            text,
+            re.IGNORECASE,
+        )
+
+        if duration:
+
+            data["duration"] = duration.group(1)
+
+            return
+
+        duration = re.search(
+            r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+            r"years?\b(?!\s*old)",
             text,
             re.IGNORECASE,
         )
