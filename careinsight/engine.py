@@ -81,6 +81,9 @@ class CareVoiceEngine:
             summary,
             patient,
             risk,
+            language=language,
+            language_probability=speech["language_probability"],
+            warnings=warnings,
         )
 
         report = self._build_report(
@@ -152,6 +155,9 @@ class CareVoiceEngine:
         summary: str,
         patient: dict,
         risk: dict,
+        language: str = None,
+        language_probability: float = None,
+        warnings: list = None,
     ) -> str:
         """
         Generate the clinical report.
@@ -163,6 +169,9 @@ class CareVoiceEngine:
             summary=summary,
             patient=patient,
             risk=risk,
+            language=language,
+            language_probability=language_probability,
+            warnings=warnings,
         )
 
     # ======================================================

@@ -110,6 +110,51 @@ def test_native_script_detection_is_left_alone(transcriber):
     assert speech["warnings"] == []
 
 
+def test_unsupported_language_triggers_forced_retry(transcriber):
+    """
+    A Latin-script misdetection does not always land on "en" --
+    Whisper can pick any language the translator has no mapping
+    for, which would pass through verbatim just the same.
+    """
+
+    transcriber.transcribe, calls = _stub_transcribe([
+        {
+            "transcript": ROMANIZED_TELUGU,
+            "language": "id",
+            "language_probability": 0.4,
+        },
+        {
+            "transcript": "నా పేరు లక్ష్మి.",
+            "language": PRIMARY_AUDIO_LANGUAGE,
+            "language_probability": 1.0,
+        },
+    ])
+
+    speech = transcriber.transcribe_guarded("audio.wav")
+
+    assert calls == [None, PRIMARY_AUDIO_LANGUAGE]
+    assert speech["language"] == PRIMARY_AUDIO_LANGUAGE
+    assert len(speech["warnings"]) == 1
+    assert "'id'" in speech["warnings"][0]
+
+
+def test_supported_language_is_not_retried(transcriber):
+
+    transcriber.transcribe, calls = _stub_transcribe([
+        {
+            "transcript": "मुझे बुखार है।",
+            "language": "hi",
+            "language_probability": 0.97,
+        },
+    ])
+
+    speech = transcriber.transcribe_guarded("audio.wav")
+
+    assert calls == [None]
+    assert speech["language"] == "hi"
+    assert speech["warnings"] == []
+
+
 def test_empty_transcript_is_not_retried(transcriber):
 
     transcriber.transcribe, calls = _stub_transcribe([

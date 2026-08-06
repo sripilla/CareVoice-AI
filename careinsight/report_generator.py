@@ -21,9 +21,17 @@ class ReportGenerator:
         summary: str,
         patient: dict,
         risk: dict,
+        language: str = None,
+        language_probability: float = None,
+        warnings: list = None,
     ) -> str:
         """
         Generate the complete clinical report.
+
+        The language line and the warnings section make the report
+        self-diagnosing: when speech recognition or translation
+        degrades, the report itself says so instead of presenting
+        unreliable data with full confidence.
         """
 
         logger.info("Generating clinical report...")
@@ -37,8 +45,8 @@ class ReportGenerator:
                 {REPORT_TITLE}
 {REPORT_SEPARATOR}
 
-Generated On : {timestamp}
-
+Generated On : {timestamp}{self._language_line(language, language_probability)}
+{self._warnings_section(warnings)}
 {REPORT_SUB_SEPARATOR}
 Clinical Summary
 {REPORT_SUB_SEPARATOR}
@@ -89,6 +97,48 @@ Risk Level : {risk["risk_level"]}
     # ======================================================
     # Helper Methods
     # ======================================================
+
+    def _language_line(
+        self,
+        language: str,
+        probability: float,
+    ) -> str:
+        """
+        Format the detected-language line, when known.
+        """
+
+        if not language:
+            return ""
+
+        line = f"\nLanguage     : {language}"
+
+        if probability:
+            line += f" (confidence {probability:.0%})"
+
+        return line
+
+    def _warnings_section(
+        self,
+        warnings: list,
+    ) -> str:
+        """
+        Format the processing-warnings section, when present.
+        """
+
+        if not warnings:
+            return ""
+
+        items = "\n".join(
+            f"! {warning}"
+            for warning in warnings
+        )
+
+        return (
+            f"\n{REPORT_SUB_SEPARATOR}\n"
+            "Processing Warnings\n"
+            f"{REPORT_SUB_SEPARATOR}\n\n"
+            f"{items}\n"
+        )
 
     def _clinical_summary(
         self,

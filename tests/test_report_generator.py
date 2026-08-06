@@ -61,6 +61,39 @@ def test_empty_patient_reads_sensibly(generator, empty_patient):
     assert "Risk Level : Low" in report
 
 
+def test_report_shows_language_and_warnings(generator, patient):
+    """
+    The report must be self-diagnosing: when the speech front end
+    degraded, the report says so instead of presenting unreliable
+    data with full confidence.
+    """
+
+    report = generator.generate(
+        summary="A summary.",
+        patient=patient,
+        risk={"risk_score": 5, "risk_level": "High"},
+        language="te",
+        language_probability=0.98,
+        warnings=["Transcription was retried in 'te'."],
+    )
+
+    assert "Language     : te (confidence 98%)" in report
+    assert "Processing Warnings" in report
+    assert "! Transcription was retried in 'te'." in report
+
+
+def test_report_omits_empty_diagnostics(generator, patient):
+
+    report = generator.generate(
+        summary="A summary.",
+        patient=patient,
+        risk={"risk_score": 5, "risk_level": "High"},
+    )
+
+    assert "Processing Warnings" not in report
+    assert "Language     :" not in report
+
+
 def test_format_list_bullets_items(generator):
 
     assert generator._format_list([]) == "- None"

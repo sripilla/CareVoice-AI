@@ -7,6 +7,7 @@ from config import (
     DEFAULT_CONDITION_ON_PREVIOUS_TEXT,
     DEFAULT_TEMPERATURE,
     DEFAULT_VAD_FILTER,
+    LANGUAGE_MAP,
     PRIMARY_AUDIO_LANGUAGE,
     WHISPER_COMPUTE_TYPE,
     WHISPER_DEVICE,
@@ -196,36 +197,53 @@ class SpeechTranscriber:
         """
         Transcribe with a guard against language misdetection.
 
-        Whisper can misdetect Indian-language audio as English and
-        emit a romanized transliteration. Untranslatable text like
-        that silently corrupts every downstream stage, so when a
-        transcript detected as "en" does not look like English,
-        transcription is retried with PRIMARY_AUDIO_LANGUAGE forced.
+        Whisper can misdetect Indian-language audio -- as English,
+        where it emits a romanized transliteration, or as some other
+        language the translator has no mapping for. Either way the
+        transcript would pass downstream untranslated and corrupt
+        every later stage, so transcription is retried with
+        PRIMARY_AUDIO_LANGUAGE forced.
 
         Returns the usual transcribe() dict plus a "warnings" list.
         """
 
         speech = self.transcribe(audio_path)
 
+        detected = speech["language"]
+
         warnings = []
 
-        if (
-            speech["language"] == "en"
-            and speech["transcript"].strip()
+        misdetected_english = (
+            detected == "en"
             and not looks_like_english(speech["transcript"])
+        )
+
+        untranslatable = (
+            detected != "en"
+            and detected not in LANGUAGE_MAP
+        )
+
+        if speech["transcript"].strip() and (
+            misdetected_english or untranslatable
         ):
 
+            reason = (
+                "the transcript did not look like English"
+                if misdetected_english
+                else "the translator has no mapping for it"
+            )
+
             logger.warning(
-                "Transcript detected as English but does not look "
-                "like English (likely a romanized transliteration). "
+                "Detected language '%s' is unusable (%s). "
                 "Retrying with forced language: %s",
+                detected,
+                reason,
                 PRIMARY_AUDIO_LANGUAGE,
             )
 
             warnings.append(
-                "The audio was detected as English but the "
-                "transcript did not look like English, so "
-                "transcription was retried in "
+                f"The audio was detected as '{detected}' but "
+                f"{reason}, so transcription was retried in "
                 f"'{PRIMARY_AUDIO_LANGUAGE}'."
             )
 
