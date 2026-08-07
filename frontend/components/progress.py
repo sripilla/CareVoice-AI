@@ -2,15 +2,23 @@ import streamlit as st
 
 
 def render_progress():
+    """
+    Display pipeline processing status.
+    """
 
-    st.subheader("⚙ Pipeline Status")
+    report = st.session_state.get("report", {})
 
-    st.info("⏳ Speech Recognition")
+    # Analysis is considered complete once a clinical report exists
+    analysis_complete = bool(report.get("clinical_report"))
 
-    st.info("⏳ Translation")
+    st.subheader("⚙️ Pipeline Status")
 
-    st.info("⏳ Summarization")
-
-    st.info("⏳ Medical Entity Extraction")
-
-    st.info("⏳ Risk Assessment")
+    if analysis_complete:
+        st.success("✅ Speech Recognition")
+        st.success("✅ Translation")
+        st.success("✅ Summarization")
+        st.success("✅ Medical Entity Extraction")
+        st.success("✅ Risk Assessment")
+        st.success("✅ Clinical Report Generation")
+    else:
+        st.info("⏳ Waiting for analysis...")

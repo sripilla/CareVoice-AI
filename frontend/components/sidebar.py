@@ -4,7 +4,7 @@ Sidebar component for CareVoice AI.
 
 import streamlit as st
 
-from constants import (
+from frontend.constants import (
     APP_TITLE,
     APP_SUBTITLE,
     APP_VERSION,
