@@ -79,11 +79,18 @@ def main():
 
         st.divider()
 
-        uploaded_file, analyze = render_uploader()
+        # ============================================================
+        # Upload Audio Card
+        # ============================================================
 
-        # --------------------------------------------------------
+        with st.container(border=True):
+
+            uploaded_file, analyze = render_uploader()
+
+        # ============================================================
         # Run Analysis
-        # --------------------------------------------------------
+        # ============================================================
+
         if analyze:
 
             if uploaded_file is None:
@@ -92,7 +99,6 @@ def main():
 
             else:
 
-                # Reset report
                 st.session_state.report = {
                     "original_transcript": "",
                     "detected_language": "",
@@ -121,53 +127,75 @@ def main():
 
                         backend_report = run_analysis(audio_path)
 
-                        # Save backend response
                         st.session_state.report = backend_report
 
                     st.success("Analysis completed successfully.")
 
-                    # Force Streamlit to rerun using the updated session state
                     st.rerun()
 
                 except Exception as e:
                     st.exception(e)
 
-        # --------------------------------------------------------
+        # ============================================================
         # Processing Details
-        # --------------------------------------------------------
+        # ============================================================
+
         if show_processing_details:
+
             with st.expander("⚙️ Processing Details", expanded=False):
+
                 render_progress()
 
-        st.divider()
+        # ============================================================
+        # Transcript Card
+        # ============================================================
 
-        render_transcript()
+        with st.container(border=True):
 
-        st.divider()
+            render_transcript()
 
-        render_translation()
+        # ============================================================
+        # Translation Card
+        # ============================================================
 
-        st.divider()
+        with st.container(border=True):
 
-        render_summary()
+            render_translation()
 
-        st.divider()
+        # ============================================================
+        # Summary Card
+        # ============================================================
 
-        left_col, right_col = st.columns([2, 1])
+        with st.container(border=True):
 
-        with left_col:
+            render_summary()
+
+        # ============================================================
+        # Patient Information Card
+        # ============================================================
+
+        with st.container(border=True):
             render_entities()
 
-        with right_col:
-            render_risk()
+        # ============================================================
+        # Risk Assessment Card
+        # ============================================================
 
-        st.divider()
+        with st.container(border=True):
+            render_risk()   
 
-        render_report()
+        # ============================================================
+        # Clinical Report Card
+        # ============================================================
+
+        with st.container(border=True):
+
+            render_report()
 
     # ------------------------------------------------------------
     # Report History
     # ------------------------------------------------------------
+
     elif page == PAGE_REPORT_HISTORY:
 
         st.title("📋 Report History")
@@ -179,6 +207,7 @@ def main():
     # ------------------------------------------------------------
     # About
     # ------------------------------------------------------------
+
     elif page == PAGE_ABOUT:
 
         st.title("ℹ️ About CareVoice AI")
@@ -202,7 +231,7 @@ that converts patient speech into structured clinical reports.
 
 ---
 
-Developed as part of the NLP Minor Specialisation.
+Developed as part of the **NLP Minor Specialisation**.
 """
         )
 
