@@ -23,3 +23,8 @@ models/
 
 # SQLite database
 database/*.db
+
+# PyTest
+.coverage
+.pytest_cache/
+htmlcov/
