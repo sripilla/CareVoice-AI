@@ -1,0 +1,45 @@
+# Python
+**/__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+
+# Streamlit cache
+.streamlit/
+
+# Database
+*.db
+
+# Logs
+logs/
+*.log
+
+# Uploaded/generated files
+data/transcripts/
+data/raw_audio/
+*.wav
+*.mp3
+*.m4a
+*.json
+*.tsv
+*.vtt
+*.srt
+
+# IDE
+.vscode/
+.idea/
