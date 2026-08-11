@@ -61,6 +61,29 @@ DEFAULT_VAD_FILTER = True
 DEFAULT_CONDITION_ON_PREVIOUS_TEXT = False
 
 # ==========================================================
+# Specialist ASR Models (Indic fine-tunes)
+# ==========================================================
+#
+# Vanilla Whisper hears low-resource Indic speech but misspells
+# it (e.g. Kannada "jvara"/fever), which breaks translation and
+# entity extraction downstream. When Whisper detects one of the
+# languages below, transcription is re-run with a per-language
+# Whisper model fine-tuned on native speech corpora
+# (IIT Madras Speech Lab). Other languages keep using the
+# default multilingual model. Specialist models are downloaded
+# and loaded lazily, only for languages actually encountered.
+
+SPECIALIST_ASR_MODELS = {
+    "kn": "vasista22/whisper-kannada-medium",
+    "te": "vasista22/whisper-telugu-medium",
+    "hi": "vasista22/whisper-hindi-medium",
+}
+
+# Chunk length (seconds) for specialist transcription of audio
+# longer than Whisper's 30-second window.
+SPECIALIST_CHUNK_LENGTH_S = 30
+
+# ==========================================================
 # Translation (NLLB)
 # ==========================================================
 
