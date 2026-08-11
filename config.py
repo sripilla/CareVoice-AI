@@ -83,6 +83,16 @@ SPECIALIST_ASR_MODELS = {
 # longer than Whisper's 30-second window.
 SPECIALIST_CHUNK_LENGTH_S = 30
 
+# The specialist fine-tunes ship a 2023-era generation config
+# that current transformers versions reject when forcing the
+# language. All of the models above are whisper-medium
+# fine-tunes, and every medium-family Whisper model shares the
+# same tokenizer and vocabulary, so the base model's modern
+# generation config is a drop-in replacement at load time.
+# NOTE: if a large-v3 based fine-tune is ever added, its base
+# must be used instead (large-v3 has an extended vocabulary).
+SPECIALIST_GENERATION_CONFIG_BASE = "openai/whisper-medium"
+
 # ==========================================================
 # Translation (NLLB)
 # ==========================================================

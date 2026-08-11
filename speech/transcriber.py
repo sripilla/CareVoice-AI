@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 from faster_whisper import WhisperModel
 from faster_whisper.audio import decode_audio
-from transformers import pipeline
+from transformers import GenerationConfig, pipeline
 
 from config import (
     DEFAULT_BEAM_SIZE,
@@ -12,6 +12,7 @@ from config import (
     DEFAULT_VAD_FILTER,
     SPECIALIST_ASR_MODELS,
     SPECIALIST_CHUNK_LENGTH_S,
+    SPECIALIST_GENERATION_CONFIG_BASE,
     WHISPER_MODEL,
 )
 from utils.logger import get_logger
@@ -257,12 +258,25 @@ class SpeechTranscriber:
                 model_name,
             )
 
-            self._specialist_pipelines[language] = pipeline(
+            asr = pipeline(
                 task="automatic-speech-recognition",
                 model=model_name,
                 chunk_length_s=SPECIALIST_CHUNK_LENGTH_S,
                 device="cpu",
             )
+
+            # The fine-tune's own generation config is too old
+            # for the `language`/`task` generate() arguments on
+            # current transformers versions. Replace it with the
+            # base model's config (same tokenizer/vocab), per
+            # https://github.com/huggingface/transformers/issues/25084
+            asr.model.generation_config = (
+                GenerationConfig.from_pretrained(
+                    SPECIALIST_GENERATION_CONFIG_BASE
+                )
+            )
+
+            self._specialist_pipelines[language] = asr
 
             logger.info(
                 "Specialist ASR model for '%s' loaded "
