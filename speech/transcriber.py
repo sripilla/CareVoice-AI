@@ -5,7 +5,9 @@ from faster_whisper import WhisperModel
 
 from config import (
     DEFAULT_BEAM_SIZE,
+    DEFAULT_CONDITION_ON_PREVIOUS_TEXT,
     DEFAULT_TEMPERATURE,
+    DEFAULT_VAD_FILTER,
     WHISPER_MODEL,
 )
 from utils.logger import get_logger
@@ -92,8 +94,8 @@ class SpeechTranscriber:
             segments, info = self.model.transcribe(
                 audio_path,
                 beam_size=DEFAULT_BEAM_SIZE,
-                vad_filter=False,
-                condition_on_previous_text=False,
+                vad_filter=DEFAULT_VAD_FILTER,
+                condition_on_previous_text=DEFAULT_CONDITION_ON_PREVIOUS_TEXT,
                 temperature=DEFAULT_TEMPERATURE,
             )
 

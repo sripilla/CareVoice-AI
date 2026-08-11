@@ -48,8 +48,16 @@ WHISPER_DEVICE = "cpu"
 WHISPER_COMPUTE_TYPE = "int8"
 
 DEFAULT_BEAM_SIZE = 5
-DEFAULT_TEMPERATURE = 0.0
-DEFAULT_VAD_FILTER = False
+
+# Temperature fallback ladder: when a segment decodes with poor
+# confidence or compression, retry at progressively higher
+# temperatures instead of dropping the remaining audio.
+DEFAULT_TEMPERATURE = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+
+# Strip silence and pauses (common in microphone recordings)
+# before decoding to avoid early stopping and hallucination.
+DEFAULT_VAD_FILTER = True
+
 DEFAULT_CONDITION_ON_PREVIOUS_TEXT = False
 
 # ==========================================================
@@ -61,6 +69,12 @@ TRANSLATION_MODEL = "facebook/nllb-200-distilled-600M"
 DEFAULT_TARGET_LANGUAGE = "eng_Latn"
 
 MAX_TRANSLATION_LENGTH = 512
+
+# NLLB is a sentence-level model: long unpunctuated transcripts
+# get partially dropped. Transcripts are split on sentence
+# punctuation first; any sentence longer than this word count
+# is further split into fixed-size chunks before translation.
+TRANSLATION_CHUNK_MAX_WORDS = 25
 
 # Whisper language code -> NLLB language code
 

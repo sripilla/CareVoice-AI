@@ -1,3 +1,5 @@
+import re
+
 from transformers import (
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
@@ -7,6 +9,7 @@ from config import (
     DEFAULT_TARGET_LANGUAGE,
     LANGUAGE_MAP,
     MAX_TRANSLATION_LENGTH,
+    TRANSLATION_CHUNK_MAX_WORDS,
     TRANSLATION_MODEL,
 )
 from utils.logger import get_logger
@@ -126,33 +129,59 @@ class Translator:
             target_language,
         )
 
+        # --------------------------------------------------
+        # Translate chunk by chunk
+        # --------------------------------------------------
+        #
+        # NLLB is a sentence-level model. Feeding it a long
+        # unpunctuated transcript in a single pass makes it
+        # silently drop clauses, so the transcript is split
+        # into sentence-sized chunks and each chunk is
+        # translated independently.
+        # --------------------------------------------------
+
+        chunks = self._split_into_chunks(text)
+
+        logger.info(
+            "Translating %d chunk(s).",
+            len(chunks),
+        )
+
         try:
 
             self.tokenizer.src_lang = source_language
 
-            inputs = self.tokenizer(
-                text,
-                return_tensors="pt",
-            )
+            translated_chunks = []
 
-            generated_tokens = self.model.generate(
-                **inputs,
-                forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(
-                    target_language
-                ),
-                max_length=MAX_TRANSLATION_LENGTH,
-            )
+            for chunk in chunks:
 
-            translated = self.tokenizer.batch_decode(
-                generated_tokens,
-                skip_special_tokens=True,
-            )
+                inputs = self.tokenizer(
+                    chunk,
+                    return_tensors="pt",
+                )
+
+                generated_tokens = self.model.generate(
+                    **inputs,
+                    forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(
+                        target_language
+                    ),
+                    max_length=MAX_TRANSLATION_LENGTH,
+                )
+
+                translated = self.tokenizer.batch_decode(
+                    generated_tokens,
+                    skip_special_tokens=True,
+                )
+
+                translated_chunks.append(
+                    translated[0].strip()
+                )
 
             logger.info(
                 "Translation completed successfully."
             )
 
-            return translated[0]
+            return " ".join(translated_chunks)
 
         except Exception:
 
@@ -161,3 +190,58 @@ class Translator:
             )
 
             raise
+
+    @staticmethod
+    def _split_into_chunks(
+        text: str,
+        max_words: int = TRANSLATION_CHUNK_MAX_WORDS,
+    ) -> list:
+        """
+        Split a transcript into sentence-sized chunks.
+
+        The text is first split on sentence-ending
+        punctuation (including the Indic danda). Whisper
+        often emits Indic text with no punctuation at all,
+        so any sentence still longer than ``max_words`` is
+        split further into fixed-size word chunks.
+
+        Parameters
+        ----------
+        text : str
+            Transcript text.
+
+        max_words : int
+            Maximum words per chunk.
+
+        Returns
+        -------
+        list
+            Non-empty text chunks in original order.
+        """
+
+        sentences = re.split(
+            r"(?<=[.!?।؟])\s+",
+            text.strip(),
+        )
+
+        chunks = []
+
+        for sentence in sentences:
+
+            sentence = sentence.strip()
+
+            if not sentence:
+                continue
+
+            words = sentence.split()
+
+            if len(words) <= max_words:
+                chunks.append(sentence)
+                continue
+
+            for start in range(0, len(words), max_words):
+                chunks.append(
+                    " ".join(words[start:start + max_words])
+                )
+
+        return chunks
