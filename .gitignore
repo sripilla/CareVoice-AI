@@ -28,3 +28,6 @@ database/*.db
 .coverage
 .pytest_cache/
 htmlcov/
+
+# Raw audio recordings
+data/raw_audio/
