@@ -48,9 +48,18 @@ class CareVoiceEngine:
     def process_audio(
         self,
         audio_path: str,
+        patient_details: dict,
     ) -> dict:
         """
         Execute the complete CareVoice AI pipeline.
+
+        Parameters
+        ----------
+        audio_path : str
+            Path to the consultation audio.
+
+        patient_details : dict
+            Doctor-provided patient identity information.
         """
 
         logger.info("Processing audio: %s", audio_path)
@@ -68,8 +77,13 @@ class CareVoiceEngine:
             english_text
         )
 
-        patient = self._extract_patient(
+        clinical_data = self._extract_clinical_data(
             english_text
+        )
+
+        patient = self._combine_patient_data(
+            patient_details,
+            clinical_data,
         )
 
         risk = self._assess_risk(
@@ -92,9 +106,13 @@ class CareVoiceEngine:
             clinical_report=clinical_report,
         )
 
-        self._save_report(report)
+        consultation_id = self._save_report(report)
 
-        logger.info("Audio processing completed successfully.")
+        report["consultation_id"] = consultation_id
+
+        logger.info(
+            "Audio processing completed successfully."
+        )
 
         return report
 
@@ -151,19 +169,41 @@ class CareVoiceEngine:
             english_text
         )
 
-    def _extract_patient(
+    def _extract_clinical_data(
         self,
         english_text: str,
     ) -> dict:
         """
-        Extract structured medical information.
+        Extract structured clinical information.
         """
 
-        logger.info("Step 4: Medical Entity Extraction")
+        logger.info(
+            "Step 4: Clinical Information Extraction"
+        )
 
         return self.extractor.extract(
             english_text
         )
+
+    def _combine_patient_data(
+        self,
+        patient_details: dict,
+        clinical_data: dict,
+    ) -> dict:
+        """
+        Combine doctor-provided patient identity with
+        AI-extracted clinical information.
+        """
+
+        return {
+            "patient_id": patient_details["patient_id"],
+            "patient_name": patient_details["patient_name"],
+            "age": patient_details["age"],
+            "symptoms": clinical_data["symptoms"],
+            "conditions": clinical_data["conditions"],
+            "medications": clinical_data["medications"],
+            "duration": clinical_data["duration"],
+        }
 
     def _assess_risk(
         self,
@@ -227,12 +267,15 @@ class CareVoiceEngine:
 
     def _save_report(
         self,
-        report: dict,
+    report: dict,
     ):
         """
-        Persist the report to the database.
+        Persist the consultation to the database.
         """
 
-        logger.info("Saving report to database.")
+        logger.info("Saving consultation to database.")
 
-        self.database.save_report(report)
+        consultation_id = self.database.save_consultation(
+        report
+    )
+        return consultation_id

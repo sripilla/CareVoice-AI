@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 class MedicalExtractor:
     """
-    Extract structured medical information
+    Extract structured clinical information
     from translated English text.
     """
 
@@ -59,7 +59,7 @@ class MedicalExtractor:
         text: str,
     ) -> dict:
         """
-        Extract structured patient information.
+        Extract structured clinical information.
         """
 
         if not text.strip():
@@ -68,7 +68,7 @@ class MedicalExtractor:
                 "Received empty text for extraction."
             )
 
-            return self._initialize_patient()
+            return self._initialize_clinical_data()
 
         logger.info(
             "Extracting medical entities..."
@@ -76,21 +76,10 @@ class MedicalExtractor:
 
         doc = self.nlp(text)
 
-        data = self._initialize_patient()
-
-        self._extract_name(
-            text,
-            doc,
-            data,
-        )
+        data = self._initialize_clinical_data()
 
         self._extract_entities(
             doc,
-            data,
-        )
-
-        self._extract_age(
-            text,
             data,
         )
 
@@ -108,7 +97,7 @@ class MedicalExtractor:
         )
 
         logger.debug(
-            "Extracted patient data: %s",
+            "Extracted clinical data: %s",
             data,
         )
 
@@ -118,49 +107,17 @@ class MedicalExtractor:
     # Helper Methods
     # ======================================================
 
-    def _initialize_patient(self) -> dict:
+    def _initialize_clinical_data(self) -> dict:
         """
-        Initialize an empty patient record.
+        Initialize an empty clinical data record.
         """
 
         return {
-            "patient_name": None,
-            "age": None,
             "symptoms": [],
             "conditions": [],
             "medications": [],
             "duration": None,
         }
-
-    def _extract_name(
-        self,
-        text: str,
-        doc,
-        data: dict,
-    ):
-        """
-        Extract patient name.
-        """
-
-        name = re.search(
-            r"\bMy name is\s+([A-Z][a-zA-Z]*)",
-            text,
-            re.IGNORECASE,
-        )
-
-        if name:
-
-            data["patient_name"] = name.group(1)
-
-            return
-
-        for ent in doc.ents:
-
-            if ent.label_ == "PERSON":
-
-                data["patient_name"] = ent.text
-
-                return
 
     def _extract_entities(
         self,
@@ -169,7 +126,7 @@ class MedicalExtractor:
     ):
         """
         Extract symptoms, diseases,
-        and medications.
+        and existing medications.
         """
 
         for ent in doc.ents:
@@ -205,7 +162,7 @@ class MedicalExtractor:
                         disease
                     )
 
-            # Medications
+            # Existing Medications
 
             elif ent.label_ == "MEDICATION":
 
@@ -217,27 +174,6 @@ class MedicalExtractor:
                     data["medications"].append(
                         text_entity
                     )
-
-    def _extract_age(
-        self,
-        text: str,
-        data: dict,
-    ):
-        """
-        Extract patient age.
-        """
-
-        age = re.search(
-            r"(\d+)\s*years?\s*old",
-            text,
-            re.IGNORECASE,
-        )
-
-        if age:
-
-            data["age"] = int(
-                age.group(1)
-            )
 
     def _extract_duration(
         self,
@@ -276,7 +212,7 @@ class MedicalExtractor:
         data: dict,
     ):
         """
-        Infer conditions from medications.
+        Infer conditions from existing medications.
         """
 
         if any(

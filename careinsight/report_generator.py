@@ -52,9 +52,10 @@ Conversation Summary (BART)
 {summary}
 
 {REPORT_SUB_SEPARATOR}
-Extracted Medical Information
+Patient and Clinical Information
 {REPORT_SUB_SEPARATOR}
 
+Patient ID   : {patient.get("patient_id") or "Unknown"}
 Patient Name : {patient.get("patient_name") or "Unknown"}
 Age          : {patient.get("age") or "Unknown"}
 
@@ -64,7 +65,7 @@ Symptoms
 Conditions
 {self._format_list(patient.get("conditions", []))}
 
-Medications
+Existing Medications
 {self._format_list(patient.get("medications", []))}
 
 Duration
@@ -128,7 +129,7 @@ Risk Level : {risk["risk_level"]}
             f"{symptoms} for {duration}.\n\n"
             f"The patient has {conditions}\n"
             f"and is currently taking {medications}.\n\n"
-            f"Based on the extracted clinical information,\n"
+            f"Based on the clinical information,\n"
             f"the patient is classified as\n\n"
             f"{risk['risk_level']} Risk\n"
             f"(Risk Score: {risk['risk_score']})."
