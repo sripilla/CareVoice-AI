@@ -16,16 +16,38 @@ class DatabaseManager:
     SQLite database manager for CareVoice AI.
     """
 
-    CREATE_TABLE_QUERY = """
-    CREATE TABLE IF NOT EXISTS patient_reports (
+    CREATE_PATIENTS_TABLE_QUERY = """
+    CREATE TABLE IF NOT EXISTS patients (
 
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        patient_id TEXT PRIMARY KEY,
 
-        timestamp TEXT,
+        patient_name TEXT NOT NULL,
 
-        patient_name TEXT,
+        age INTEGER NOT NULL,
 
-        age INTEGER,
+        created_at TEXT NOT NULL,
+
+        updated_at TEXT NOT NULL
+
+    )
+    """
+
+    CREATE_CONSULTATIONS_TABLE_QUERY = """
+    CREATE TABLE IF NOT EXISTS consultations (
+
+        consultation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        patient_id TEXT NOT NULL,
+
+        timestamp TEXT NOT NULL,
+
+        detected_language TEXT,
+
+        original_transcript TEXT,
+
+        english_transcript TEXT,
+
+        summary TEXT,
 
         symptoms TEXT,
 
@@ -35,62 +57,92 @@ class DatabaseManager:
 
         duration TEXT,
 
-        summary TEXT,
-
         risk_score INTEGER,
 
         risk_level TEXT,
 
-        clinical_report TEXT
+        clinical_report TEXT,
+
+        FOREIGN KEY (patient_id)
+            REFERENCES patients(patient_id)
 
     )
     """
 
-    INSERT_REPORT_QUERY = """
-    INSERT INTO patient_reports (
+    INSERT_PATIENT_QUERY = """
+    INSERT INTO patients (
 
-        timestamp,
+        patient_id,
         patient_name,
         age,
+        created_at,
+        updated_at
+
+    )
+
+    VALUES (?, ?, ?, ?, ?)
+
+    ON CONFLICT(patient_id)
+    DO UPDATE SET
+
+        patient_name = excluded.patient_name,
+        age = excluded.age,
+        updated_at = excluded.updated_at
+    """
+
+    INSERT_CONSULTATION_QUERY = """
+    INSERT INTO consultations (
+
+        patient_id,
+        timestamp,
+        detected_language,
+        original_transcript,
+        english_transcript,
+        summary,
         symptoms,
         conditions,
         medications,
         duration,
-        summary,
         risk_score,
         risk_level,
         clinical_report
 
     )
 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
-    GET_ALL_REPORTS_QUERY = """
-    SELECT
-        id,
-        timestamp,
-        patient_name,
-        age,
-        risk_level
-    FROM patient_reports
-    ORDER BY id DESC
-    """
-
-    GET_REPORT_QUERY = """
+    GET_PATIENT_QUERY = """
     SELECT *
-    FROM patient_reports
-    WHERE id = ?
+    FROM patients
+    WHERE patient_id = ?
     """
 
-    DELETE_REPORT_QUERY = """
-    DELETE FROM patient_reports
-    WHERE id = ?
+    GET_CONSULTATIONS_BY_PATIENT_QUERY = """
+    SELECT
+        consultation_id,
+        patient_id,
+        timestamp,
+        risk_level
+    FROM consultations
+    WHERE patient_id = ?
+    ORDER BY consultation_id DESC
     """
 
-    REPORT_COUNT_QUERY = """
+    GET_CONSULTATION_QUERY = """
+    SELECT *
+    FROM consultations
+    WHERE consultation_id = ?
+    """
+
+    CONSULTATION_COUNT_QUERY = """
     SELECT COUNT(*)
-    FROM patient_reports
+    FROM consultations
+    """
+
+    DELETE_CONSULTATION_QUERY = """
+    DELETE FROM consultations
+    WHERE consultation_id = ?
     """
 
     def __init__(
@@ -124,7 +176,9 @@ class DatabaseManager:
 
             self.cursor = self.connection.cursor()
 
-            self.create_table()
+            self._enable_foreign_keys()
+
+            self.create_tables()
 
             logger.info(
                 "Database initialized successfully."
@@ -139,30 +193,92 @@ class DatabaseManager:
             raise
 
     # ======================================================
-    # Table Initialization
+    # Database Initialization
     # ======================================================
 
-    def create_table(self):
+    def _enable_foreign_keys(self):
         """
-        Create the patient_reports table.
+        Enable SQLite foreign key enforcement.
         """
 
         self.cursor.execute(
-            self.CREATE_TABLE_QUERY
+            "PRAGMA foreign_keys = ON"
+        )
+
+    def create_tables(self):
+        """
+        Create the patient and consultation tables.
+        """
+
+        self.cursor.execute(
+            self.CREATE_PATIENTS_TABLE_QUERY
+        )
+
+        self.cursor.execute(
+            self.CREATE_CONSULTATIONS_TABLE_QUERY
         )
 
         self.connection.commit()
 
     # ======================================================
-    # Insert
+    # Patient Management
     # ======================================================
 
-    def save_report(
+    def save_patient(
+        self,
+        patient: dict,
+    ):
+        """
+        Create or update a patient record.
+        """
+
+        timestamp = datetime.now().strftime(
+            DATABASE_TIMESTAMP_FORMAT
+        )
+
+        self.cursor.execute(
+            self.INSERT_PATIENT_QUERY,
+            (
+                patient["patient_id"],
+                patient["patient_name"],
+                patient["age"],
+                timestamp,
+                timestamp,
+            ),
+        )
+
+        self.connection.commit()
+
+        logger.info(
+            "Patient %s saved successfully.",
+            patient["patient_id"],
+        )
+
+    def get_patient_by_id(
+        self,
+        patient_id: str,
+    ):
+        """
+        Return a patient by Patient ID.
+        """
+
+        self.cursor.execute(
+            self.GET_PATIENT_QUERY,
+            (patient_id,),
+        )
+
+        return self.cursor.fetchone()
+
+    # ======================================================
+    # Consultation Management
+    # ======================================================
+
+    def save_consultation(
         self,
         report: dict,
     ):
         """
-        Save a clinical report.
+        Save a consultation and its clinical report.
         """
 
         patient = report["patient"]
@@ -172,17 +288,21 @@ class DatabaseManager:
             DATABASE_TIMESTAMP_FORMAT
         )
 
+        self.save_patient(patient)
+
         self.cursor.execute(
-            self.INSERT_REPORT_QUERY,
+            self.INSERT_CONSULTATION_QUERY,
             (
+                patient["patient_id"],
                 timestamp,
-                patient["patient_name"],
-                patient["age"],
+                report["detected_language"],
+                report["original_transcript"],
+                report["english_transcript"],
+                report["summary"],
                 ", ".join(patient["symptoms"]),
                 ", ".join(patient["conditions"]),
                 ", ".join(patient["medications"]),
                 patient["duration"],
-                report["summary"],
                 risk["risk_score"],
                 risk["risk_level"],
                 report["clinical_report"],
@@ -191,47 +311,57 @@ class DatabaseManager:
 
         self.connection.commit()
 
+        consultation_id = self.cursor.lastrowid
+
         logger.info(
-            "Clinical report saved successfully."
+            "Consultation %d saved for patient %s.",
+            consultation_id,
+            patient["patient_id"],
         )
+
+        return consultation_id
 
     # ======================================================
     # Read
     # ======================================================
 
-    def get_all_reports(self):
+    def get_consultations_by_patient_id(
+        self,
+        patient_id: str,
+    ):
         """
-        Return all reports.
+        Return all consultations for a patient.
         """
 
         self.cursor.execute(
-            self.GET_ALL_REPORTS_QUERY
+            self.GET_CONSULTATIONS_BY_PATIENT_QUERY,
+            (patient_id,),
         )
 
         return self.cursor.fetchall()
 
-    def get_report_by_id(
+    def get_consultation_by_id(
         self,
-        report_id: int,
+        consultation_id: int,
     ):
         """
-        Return a report by ID.
+        Return a consultation by ID.
         """
 
         self.cursor.execute(
-            self.GET_REPORT_QUERY,
-            (report_id,),
+            self.GET_CONSULTATION_QUERY,
+            (consultation_id,),
         )
 
         return self.cursor.fetchone()
 
-    def get_report_count(self) -> int:
+    def get_consultation_count(self) -> int:
         """
-        Return the total number of reports.
+        Return the total number of consultations.
         """
 
         self.cursor.execute(
-            self.REPORT_COUNT_QUERY
+            self.CONSULTATION_COUNT_QUERY
         )
 
         return self.cursor.fetchone()[0]
@@ -240,24 +370,24 @@ class DatabaseManager:
     # Delete
     # ======================================================
 
-    def delete_report(
+    def delete_consultation(
         self,
-        report_id: int,
+        consultation_id: int,
     ):
         """
-        Delete a report.
+        Delete a consultation.
         """
 
         self.cursor.execute(
-            self.DELETE_REPORT_QUERY,
-            (report_id,),
+            self.DELETE_CONSULTATION_QUERY,
+            (consultation_id,),
         )
 
         self.connection.commit()
 
         logger.info(
-            "Deleted report with ID %d",
-            report_id,
+            "Deleted consultation with ID %d",
+            consultation_id,
         )
 
     # ======================================================

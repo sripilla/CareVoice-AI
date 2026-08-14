@@ -13,6 +13,7 @@ from frontend.constants import (
 )
 
 from frontend.components.sidebar import render_sidebar
+from frontend.components.patient_form import render_patient_form
 from frontend.components.uploader import render_uploader
 from frontend.components.progress import render_progress
 from frontend.components.transcript import render_transcript
@@ -37,6 +38,7 @@ if "report" not in st.session_state:
         "english_transcript": "",
         "summary": "",
         "patient": {
+            "patient_id": "",
             "patient_name": "",
             "age": None,
             "symptoms": [],
@@ -50,6 +52,14 @@ if "report" not in st.session_state:
         },
         "clinical_report": "",
     }
+
+
+if "patient_details" not in st.session_state:
+    st.session_state.patient_details = None
+
+
+if "consultation_started" not in st.session_state:
+    st.session_state.consultation_started = False
 
 
 def main():
@@ -67,11 +77,13 @@ def main():
     # ------------------------------------------------------------
     # Sidebar
     # ------------------------------------------------------------
+
     page, show_processing_details = render_sidebar()
 
     # ------------------------------------------------------------
     # New Consultation
     # ------------------------------------------------------------
+
     if page == PAGE_NEW_CONSULTATION:
 
         st.title(APP_TITLE)
@@ -80,117 +92,180 @@ def main():
         st.divider()
 
         # ============================================================
-        # Upload Audio Card
+        # Patient Details
         # ============================================================
 
-        with st.container(border=True):
+        if not st.session_state.consultation_started:
 
-            uploaded_file, analyze = render_uploader()
+            with st.container(border=True):
+
+                patient_details, start_consultation = (
+                    render_patient_form()
+                )
+
+            if patient_details is not None:
+
+                st.session_state.patient_details = patient_details
+
+                st.session_state.consultation_started = True
+
+                st.success(
+                    "Consultation started successfully."
+                )
+
+                st.rerun()
 
         # ============================================================
-        # Run Analysis
+        # Upload / Record Audio
         # ============================================================
 
-        if analyze:
+        if st.session_state.consultation_started:
 
-            if uploaded_file is None:
+            patient = st.session_state.patient_details
 
-                st.warning("Please upload an audio file.")
+            st.info(
+                f"Consultation in progress for "
+                f"**{patient['patient_name']}** "
+                f"(Patient ID: **{patient['patient_id']}**)"
+            )
 
-            else:
+            with st.container(border=True):
 
-                st.session_state.report = {
-                    "original_transcript": "",
-                    "detected_language": "",
-                    "english_transcript": "",
-                    "summary": "",
-                    "patient": {
-                        "patient_name": "",
-                        "age": None,
-                        "symptoms": [],
-                        "conditions": [],
-                        "medications": [],
-                        "duration": "",
-                    },
-                    "risk": {
-                        "risk_score": None,
-                        "risk_level": "",
-                    },
-                    "clinical_report": "",
-                }
+                uploaded_file, analyze = render_uploader()
 
-                try:
+            # ========================================================
+            # Run Analysis
+            # ========================================================
 
-                    with st.spinner("Analyzing patient audio..."):
+            if analyze:
 
-                        audio_path = save_uploaded_file(uploaded_file)
+                if uploaded_file is None:
 
-                        backend_report = run_analysis(audio_path)
+                    st.warning(
+                        "Please upload or record patient audio."
+                    )
 
-                        st.session_state.report = backend_report
+                else:
 
-                    st.success("Analysis completed successfully.")
+                    st.session_state.report = {
+                        "original_transcript": "",
+                        "detected_language": "",
+                        "english_transcript": "",
+                        "summary": "",
+                        "patient": {
+                            "patient_id": "",
+                            "patient_name": "",
+                            "age": None,
+                            "symptoms": [],
+                            "conditions": [],
+                            "medications": [],
+                            "duration": "",
+                        },
+                        "risk": {
+                            "risk_score": None,
+                            "risk_level": "",
+                        },
+                        "clinical_report": "",
+                    }
 
-                    st.rerun()
+                    try:
 
-                except Exception as e:
-                    st.exception(e)
+                        with st.spinner(
+                            "Analyzing patient audio..."
+                        ):
+
+                            audio_path = save_uploaded_file(
+                                uploaded_file
+                            )
+
+                            backend_report = run_analysis(
+                                audio_path,
+                                st.session_state.patient_details,
+                            )
+
+                            st.session_state.report = (
+                                backend_report
+                            )
+
+                        st.success(
+                            "Analysis completed successfully."
+                        )
+
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.exception(e)
 
         # ============================================================
         # Processing Details
         # ============================================================
 
-        if show_processing_details:
+        if (
+            st.session_state.consultation_started
+            and show_processing_details
+        ):
 
-            with st.expander("⚙️ Processing Details", expanded=False):
+            with st.expander(
+                "⚙️ Processing Details",
+                expanded=False,
+            ):
 
                 render_progress()
 
         # ============================================================
-        # Transcript Card
+        # Analysis Results
         # ============================================================
 
-        with st.container(border=True):
+        if st.session_state.report["clinical_report"]:
 
-            render_transcript()
+            # --------------------------------------------------------
+            # Transcript Card
+            # --------------------------------------------------------
 
-        # ============================================================
-        # Translation Card
-        # ============================================================
+            with st.container(border=True):
 
-        with st.container(border=True):
+                render_transcript()
 
-            render_translation()
+            # --------------------------------------------------------
+            # Translation Card
+            # --------------------------------------------------------
 
-        # ============================================================
-        # Summary Card
-        # ============================================================
+            with st.container(border=True):
 
-        with st.container(border=True):
+                render_translation()
 
-            render_summary()
+            # --------------------------------------------------------
+            # Summary Card
+            # --------------------------------------------------------
 
-        # ============================================================
-        # Patient Information Card
-        # ============================================================
+            with st.container(border=True):
 
-        with st.container(border=True):
-            render_entities()
+                render_summary()
 
-        # ============================================================
-        # Risk Assessment Card
-        # ============================================================
+            # --------------------------------------------------------
+            # Patient and Clinical Information Card
+            # --------------------------------------------------------
 
-        with st.container(border=True):
-            render_risk()   
+            with st.container(border=True):
 
-        # ============================================================
-        # Clinical Report Card
-        # ============================================================
+                render_entities()
 
-        with st.container(border=True):
+            # --------------------------------------------------------
+            # Risk Assessment Card
+            # --------------------------------------------------------
 
-            render_report()
+            with st.container(border=True):
+
+                render_risk()
+
+            # --------------------------------------------------------
+            # Clinical Report Card
+            # --------------------------------------------------------
+
+            with st.container(border=True):
+
+                render_report()
 
     # ------------------------------------------------------------
     # Report History
@@ -201,7 +276,8 @@ def main():
         st.title("📋 Report History")
 
         st.info(
-            "Previously generated clinical reports will appear here."
+            "Previously generated clinical reports "
+            "will appear here."
         )
 
     # ------------------------------------------------------------
