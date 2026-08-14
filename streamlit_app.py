@@ -25,6 +25,7 @@ from frontend.components.report import render_report
 
 from frontend.services.file_service import save_uploaded_file
 from frontend.services.analysis_service import run_analysis
+from frontend.components.history import render_history
 
 
 # ------------------------------------------------------------------
@@ -275,10 +276,12 @@ def main():
 
         st.title("📋 Report History")
 
-        st.info(
-            "Previously generated clinical reports "
-            "will appear here."
+        st.caption(
+            "Search consultations using the Patient ID."
         )
+
+        with st.container(border=True):
+            render_history()
 
     # ------------------------------------------------------------
     # About
