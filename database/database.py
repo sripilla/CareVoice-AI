@@ -69,6 +69,31 @@ class DatabaseManager:
     )
     """
 
+    CREATE_PRESCRIPTIONS_TABLE_QUERY = """
+    CREATE TABLE IF NOT EXISTS prescriptions (
+
+        prescription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        consultation_id INTEGER NOT NULL UNIQUE,
+
+        english_prescription TEXT,
+
+        translated_prescription TEXT,
+
+        english_guidelines TEXT,
+
+        translated_guidelines TEXT,
+
+        patient_language TEXT NOT NULL,
+
+        created_at TEXT NOT NULL,
+
+        FOREIGN KEY (consultation_id)
+            REFERENCES consultations(consultation_id)
+
+    )
+    """
+
     INSERT_PATIENT_QUERY = """
     INSERT INTO patients (
 
@@ -207,7 +232,7 @@ class DatabaseManager:
 
     def create_tables(self):
         """
-        Create the patient and consultation tables.
+        Create the patient, consultation and prescription tables.
         """
 
         self.cursor.execute(
@@ -216,6 +241,10 @@ class DatabaseManager:
 
         self.cursor.execute(
             self.CREATE_CONSULTATIONS_TABLE_QUERY
+        )
+
+        self.cursor.execute(
+            self.CREATE_PRESCRIPTIONS_TABLE_QUERY
         )
 
         self.connection.commit()
@@ -320,6 +349,86 @@ class DatabaseManager:
         )
 
         return consultation_id
+
+    # ======================================================
+    # Prescription Management
+    # ======================================================
+
+    def save_prescription(
+        self,
+        prescription: dict,
+    ):
+        """
+        Save a prescription and doctor guidelines
+        for a consultation.
+        """
+
+        timestamp = datetime.now().strftime(
+            DATABASE_TIMESTAMP_FORMAT
+        )
+
+        query = """
+        INSERT INTO prescriptions (
+
+            consultation_id,
+            english_prescription,
+            translated_prescription,
+            english_guidelines,
+            translated_guidelines,
+            patient_language,
+            created_at
+
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+
+        self.cursor.execute(
+            query,
+            (
+                prescription["consultation_id"],
+                prescription.get("english_prescription", ""),
+                prescription.get("translated_prescription", ""),
+                prescription.get("english_guidelines", ""),
+                prescription.get("translated_guidelines", ""),
+                prescription["patient_language"],
+                timestamp,
+            ),
+        )
+
+        self.connection.commit()
+
+        prescription_id = self.cursor.lastrowid
+
+        logger.info(
+            "Prescription %d saved for consultation %d.",
+            prescription_id,
+            prescription["consultation_id"],
+        )
+
+        return prescription_id
+
+    def get_prescription_by_consultation_id(
+        self,
+        consultation_id: int,
+    ):
+        """
+        Return the prescription associated with
+        a consultation.
+        """
+
+        query = """
+        SELECT *
+        FROM prescriptions
+        WHERE consultation_id = ?
+        """
+
+        self.cursor.execute(
+            query,
+            (consultation_id,),
+        )
+
+        return self.cursor.fetchone()
 
     # ======================================================
     # Read

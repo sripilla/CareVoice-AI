@@ -19,9 +19,13 @@ class Translator:
     Multilingual Translation module using
     Facebook NLLB-200.
 
-    Automatically translates supported
-    Indian languages into English.
+    Supports:
+
+    - Patient language → English
+    - English → Patient language
     """
+
+    ENGLISH_LANGUAGE_CODE = "eng_Latn"
 
     def __init__(
         self,
@@ -67,7 +71,10 @@ class Translator:
         target_language: str = DEFAULT_TARGET_LANGUAGE,
     ) -> str:
         """
-        Translate text into English.
+        Translate text from a Whisper detected language
+        into the target language.
+
+        This is used by the existing consultation workflow.
 
         Parameters
         ----------
@@ -75,36 +82,39 @@ class Translator:
             Original transcript.
 
         language : str
-            Whisper detected language
+            Whisper detected language code
             (te, kn, hi, en, ...).
 
         target_language : str
-            Target language.
+            NLLB target language code.
         """
 
         if not text.strip():
 
             logger.warning(
-                "Received empty transcript."
+                "Received empty text for translation."
             )
 
             return ""
 
         # --------------------------------------------------
-        # English does not require translation
+        # English input with English target
         # --------------------------------------------------
 
-        if language == "en":
+        if (
+            language == "en"
+            and target_language == self.ENGLISH_LANGUAGE_CODE
+        ):
 
             logger.info(
-                "Input language is English. "
+                "Input is already English. "
                 "Skipping translation."
             )
 
             return text
 
         # --------------------------------------------------
-        # Validate supported language
+        # Validate supported source language
         # --------------------------------------------------
 
         if language not in LANGUAGE_MAP:
@@ -119,6 +129,98 @@ class Translator:
             )
 
         source_language = LANGUAGE_MAP[language]
+
+        return self._translate(
+            text=text,
+            source_language=source_language,
+            target_language=target_language,
+        )
+
+    def translate_from_english(
+        self,
+        text: str,
+        target_language: str,
+    ) -> str:
+        """
+        Translate English text into the patient's
+        detected language.
+
+        Parameters
+        ----------
+        text : str
+            English prescription or doctor guidelines.
+
+        target_language : str
+            Whisper detected patient language code
+            (te, kn, hi, en, ...).
+        """
+
+        if not text.strip():
+
+            logger.warning(
+                "Received empty English text for translation."
+            )
+
+            return ""
+
+        # --------------------------------------------------
+        # English patient
+        # --------------------------------------------------
+
+        if target_language == "en":
+
+            logger.info(
+                "Patient language is English. "
+                "Skipping translation."
+            )
+
+            return text
+
+        # --------------------------------------------------
+        # Validate supported patient language
+        # --------------------------------------------------
+
+        if target_language not in LANGUAGE_MAP:
+
+            logger.error(
+                "Unsupported target language: %s",
+                target_language,
+            )
+
+            raise ValueError(
+                f"Unsupported language: {target_language}"
+            )
+
+        nllb_target_language = LANGUAGE_MAP[
+            target_language
+        ]
+
+        return self._translate(
+            text=text,
+            source_language=self.ENGLISH_LANGUAGE_CODE,
+            target_language=nllb_target_language,
+        )
+
+    def _translate(
+        self,
+        text: str,
+        source_language: str,
+        target_language: str,
+    ) -> str:
+        """
+        Perform translation using NLLB.
+
+        Parameters
+        ----------
+        text : str
+            Text to translate.
+
+        source_language : str
+            NLLB source language code.
+
+        target_language : str
+            NLLB target language code.
+        """
 
         logger.info(
             "Translating %s → %s",
@@ -137,8 +239,10 @@ class Translator:
 
             generated_tokens = self.model.generate(
                 **inputs,
-                forced_bos_token_id=self.tokenizer.convert_tokens_to_ids(
-                    target_language
+                forced_bos_token_id=(
+                    self.tokenizer.convert_tokens_to_ids(
+                        target_language
+                    )
                 ),
                 max_length=MAX_TRANSLATION_LENGTH,
             )
