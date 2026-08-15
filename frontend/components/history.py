@@ -6,6 +6,9 @@ from datetime import datetime
 
 import streamlit as st
 
+from frontend.components.prescription import (
+    render_prescription,
+)
 from frontend.services.history_service import (
     get_consultation,
     get_patient_history,
@@ -230,7 +233,7 @@ def render_history():
     )
 
     # ----------------------------------------------------------
-    # Download
+    # Download Clinical Report
     # ----------------------------------------------------------
 
     if clinical_report:
@@ -246,3 +249,11 @@ def render_history():
             mime="text/plain",
             type="primary",
         )
+
+    # ----------------------------------------------------------
+    # Doctor Prescription & Guidelines
+    # ----------------------------------------------------------
+
+    render_prescription(
+        consultation_id=consultation["consultation_id"]
+    )

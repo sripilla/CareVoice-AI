@@ -59,6 +59,15 @@ Patient ID   : {patient.get("patient_id") or "Unknown"}
 Patient Name : {patient.get("patient_name") or "Unknown"}
 Age          : {patient.get("age") or "Unknown"}
 
+Blood Pressure
+- {patient.get("blood_pressure") or "Not provided"}
+
+Weight
+- {self._format_weight(patient.get("weight"))}
+
+Blood Sugar
+- {self._format_blood_sugar(patient.get("blood_sugar"))}
+
 Symptoms
 {self._format_list(patient.get("symptoms", []))}
 
@@ -150,3 +159,29 @@ Risk Level : {risk["risk_level"]}
             f"- {item}"
             for item in items
         )
+
+    def _format_weight(
+        self,
+        weight,
+    ) -> str:
+        """
+        Format patient weight for the report.
+        """
+
+        if weight is None:
+            return "Not provided"
+
+        return f"{weight} kg"
+
+    def _format_blood_sugar(
+        self,
+        blood_sugar,
+    ) -> str:
+        """
+        Format patient blood sugar for the report.
+        """
+
+        if blood_sugar is None:
+            return "Not provided"
+
+        return f"{blood_sugar} mg/dL"

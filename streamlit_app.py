@@ -22,10 +22,11 @@ from frontend.components.summary import render_summary
 from frontend.components.entities import render_entities
 from frontend.components.risk import render_risk
 from frontend.components.report import render_report
+from frontend.components.prescription import render_prescription
+from frontend.components.history import render_history
 
 from frontend.services.file_service import save_uploaded_file
 from frontend.services.analysis_service import run_analysis
-from frontend.components.history import render_history
 
 
 # ------------------------------------------------------------------
@@ -34,6 +35,7 @@ from frontend.components.history import render_history
 
 if "report" not in st.session_state:
     st.session_state.report = {
+        "consultation_id": None,
         "original_transcript": "",
         "detected_language": "",
         "english_transcript": "",
@@ -42,6 +44,9 @@ if "report" not in st.session_state:
             "patient_id": "",
             "patient_name": "",
             "age": None,
+            "blood_pressure": None,
+            "weight": None,
+            "blood_sugar": None,
             "symptoms": [],
             "conditions": [],
             "medications": [],
@@ -106,7 +111,9 @@ def main():
 
             if patient_details is not None:
 
-                st.session_state.patient_details = patient_details
+                st.session_state.patient_details = (
+                    patient_details
+                )
 
                 st.session_state.consultation_started = True
 
@@ -148,7 +155,9 @@ def main():
 
                 else:
 
+                    # Reset previous report before analysis.
                     st.session_state.report = {
+                        "consultation_id": None,
                         "original_transcript": "",
                         "detected_language": "",
                         "english_transcript": "",
@@ -157,6 +166,9 @@ def main():
                             "patient_id": "",
                             "patient_name": "",
                             "age": None,
+                            "blood_pressure": None,
+                            "weight": None,
+                            "blood_sugar": None,
                             "symptoms": [],
                             "conditions": [],
                             "medications": [],
@@ -268,6 +280,29 @@ def main():
 
                 render_report()
 
+            # --------------------------------------------------------
+            # Doctor Prescription and Guidelines Card
+            # --------------------------------------------------------
+
+            consultation_id = st.session_state.report.get(
+                "consultation_id"
+            )
+
+            if consultation_id is not None:
+
+                with st.container(border=True):
+
+                    render_prescription(
+                        consultation_id=consultation_id
+                    )
+
+            else:
+
+                st.error(
+                    "Consultation ID is not available. "
+                    "Unable to save the prescription."
+                )
+
     # ------------------------------------------------------------
     # Report History
     # ------------------------------------------------------------
@@ -281,6 +316,7 @@ def main():
         )
 
         with st.container(border=True):
+
             render_history()
 
     # ------------------------------------------------------------
@@ -307,6 +343,8 @@ that converts patient speech into structured clinical reports.
 - 🩺 Medical Entity Extraction
 - ⚠️ Risk Assessment
 - 📋 Clinical Report Generation
+- 💊 Doctor Prescription Translation
+- 📝 Multilingual Patient Guidelines
 
 ---
 

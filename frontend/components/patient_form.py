@@ -3,7 +3,7 @@ import streamlit as st
 
 def render_patient_form():
     """
-    Render the patient details form.
+    Render the patient and optional clinical details form.
 
     Returns
     -------
@@ -32,6 +32,32 @@ def render_patient_form():
         step=1,
     )
 
+    st.subheader("🩺 Clinical Measurements")
+
+    st.caption(
+        "Optional — enter available measurements for "
+        "this consultation."
+    )
+
+    blood_pressure = st.text_input(
+        "Blood Pressure",
+        placeholder="Example: 120/80 mmHg",
+    )
+
+    weight = st.number_input(
+        "Weight (kg)",
+        min_value=0.0,
+        value=None,
+        step=0.1,
+    )
+
+    blood_sugar = st.number_input(
+        "Blood Sugar (mg/dL)",
+        min_value=0.0,
+        value=None,
+        step=0.1,
+    )
+
     start_consultation = st.button(
         "Start Consultation",
         type="primary",
@@ -43,15 +69,21 @@ def render_patient_form():
 
         if not patient_id.strip():
 
-            st.warning("Please enter a Patient ID.")
+            st.warning(
+                "Please enter a Patient ID."
+            )
 
         elif not patient_name.strip():
 
-            st.warning("Please enter the patient name.")
+            st.warning(
+                "Please enter the patient name."
+            )
 
         elif age is None:
 
-            st.warning("Please enter the patient's age.")
+            st.warning(
+                "Please enter the patient's age."
+            )
 
         else:
 
@@ -59,6 +91,11 @@ def render_patient_form():
                 "patient_id": patient_id.strip(),
                 "patient_name": patient_name.strip(),
                 "age": age,
+                "blood_pressure": (
+                    blood_pressure.strip() or None
+                ),
+                "weight": weight,
+                "blood_sugar": blood_sugar,
             }
 
     return patient_details, start_consultation

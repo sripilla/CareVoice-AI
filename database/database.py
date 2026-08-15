@@ -41,6 +41,12 @@ class DatabaseManager:
 
         timestamp TEXT NOT NULL,
 
+        blood_pressure TEXT,
+
+        weight REAL,
+
+        blood_sugar REAL,
+
         detected_language TEXT,
 
         original_transcript TEXT,
@@ -65,6 +71,31 @@ class DatabaseManager:
 
         FOREIGN KEY (patient_id)
             REFERENCES patients(patient_id)
+
+    )
+    """
+
+    CREATE_PRESCRIPTIONS_TABLE_QUERY = """
+    CREATE TABLE IF NOT EXISTS prescriptions (
+
+        prescription_id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        consultation_id INTEGER NOT NULL UNIQUE,
+
+        english_prescription TEXT,
+
+        translated_prescription TEXT,
+
+        english_guidelines TEXT,
+
+        translated_guidelines TEXT,
+
+        patient_language TEXT NOT NULL,
+
+        created_at TEXT NOT NULL,
+
+        FOREIGN KEY (consultation_id)
+            REFERENCES consultations(consultation_id)
 
     )
     """
@@ -95,6 +126,9 @@ class DatabaseManager:
 
         patient_id,
         timestamp,
+        blood_pressure,
+        weight,
+        blood_sugar,
         detected_language,
         original_transcript,
         english_transcript,
@@ -109,7 +143,7 @@ class DatabaseManager:
 
     )
 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     GET_PATIENT_QUERY = """
@@ -205,9 +239,48 @@ class DatabaseManager:
             "PRAGMA foreign_keys = ON"
         )
 
+    def _add_consultation_columns_if_missing(self):
+        """
+        Add optional clinical measurement columns to an
+        existing consultations table if they are missing.
+        """
+
+        self.cursor.execute(
+            "PRAGMA table_info(consultations)"
+        )
+
+        existing_columns = {
+            row["name"]
+            for row in self.cursor.fetchall()
+        }
+
+        required_columns = {
+            "blood_pressure": "TEXT",
+            "weight": "REAL",
+            "blood_sugar": "REAL",
+        }
+
+        for column_name, column_type in (
+            required_columns.items()
+        ):
+
+            if column_name not in existing_columns:
+
+                self.cursor.execute(
+                    f"""
+                    ALTER TABLE consultations
+                    ADD COLUMN {column_name} {column_type}
+                    """
+                )
+
+                logger.info(
+                    "Added column %s to consultations table.",
+                    column_name,
+                )
+
     def create_tables(self):
         """
-        Create the patient and consultation tables.
+        Create the patient, consultation and prescription tables.
         """
 
         self.cursor.execute(
@@ -216,6 +289,12 @@ class DatabaseManager:
 
         self.cursor.execute(
             self.CREATE_CONSULTATIONS_TABLE_QUERY
+        )
+
+        self._add_consultation_columns_if_missing()
+
+        self.cursor.execute(
+            self.CREATE_PRESCRIPTIONS_TABLE_QUERY
         )
 
         self.connection.commit()
@@ -295,6 +374,9 @@ class DatabaseManager:
             (
                 patient["patient_id"],
                 timestamp,
+                patient.get("blood_pressure"),
+                patient.get("weight"),
+                patient.get("blood_sugar"),
                 report["detected_language"],
                 report["original_transcript"],
                 report["english_transcript"],
@@ -320,6 +402,98 @@ class DatabaseManager:
         )
 
         return consultation_id
+
+    # ======================================================
+    # Prescription Management
+    # ======================================================
+
+    def save_prescription(
+        self,
+        prescription: dict,
+    ):
+        """
+        Save a prescription and doctor guidelines
+        for a consultation.
+        """
+
+        timestamp = datetime.now().strftime(
+            DATABASE_TIMESTAMP_FORMAT
+        )
+
+        query = """
+        INSERT INTO prescriptions (
+
+            consultation_id,
+            english_prescription,
+            translated_prescription,
+            english_guidelines,
+            translated_guidelines,
+            patient_language,
+            created_at
+
+        )
+
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """
+
+        self.cursor.execute(
+            query,
+            (
+                prescription["consultation_id"],
+                prescription.get(
+                    "english_prescription",
+                    "",
+                ),
+                prescription.get(
+                    "translated_prescription",
+                    "",
+                ),
+                prescription.get(
+                    "english_guidelines",
+                    "",
+                ),
+                prescription.get(
+                    "translated_guidelines",
+                    "",
+                ),
+                prescription["patient_language"],
+                timestamp,
+            ),
+        )
+
+        self.connection.commit()
+
+        prescription_id = self.cursor.lastrowid
+
+        logger.info(
+            "Prescription %d saved for consultation %d.",
+            prescription_id,
+            prescription["consultation_id"],
+        )
+
+        return prescription_id
+
+    def get_prescription_by_consultation_id(
+        self,
+        consultation_id: int,
+    ):
+        """
+        Return the prescription associated with
+        a consultation.
+        """
+
+        query = """
+        SELECT *
+        FROM prescriptions
+        WHERE consultation_id = ?
+        """
+
+        self.cursor.execute(
+            query,
+            (consultation_id,),
+        )
+
+        return self.cursor.fetchone()
 
     # ======================================================
     # Read
