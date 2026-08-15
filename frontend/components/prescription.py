@@ -4,6 +4,7 @@ Doctor prescription and guidelines component.
 
 import streamlit as st
 
+from frontend.components.speaker import render_speaker
 from frontend.services.prescription_service import (
     PrescriptionService,
 )
@@ -81,6 +82,19 @@ def render_prescription(
                 ),
             )
 
+            render_speaker(
+                text=existing_prescription[
+                    "translated_prescription"
+                ] or "",
+                language=existing_prescription[
+                    "patient_language"
+                ],
+                key=(
+                    f"existing_speak_prescription_"
+                    f"{consultation_id}"
+                ),
+            )
+
         st.markdown("### Doctor Guidelines")
 
         col1, col2 = st.columns(2)
@@ -111,6 +125,19 @@ def render_prescription(
                 disabled=True,
                 key=(
                     f"existing_translated_guidelines_"
+                    f"{consultation_id}"
+                ),
+            )
+
+            render_speaker(
+                text=existing_prescription[
+                    "translated_guidelines"
+                ] or "",
+                language=existing_prescription[
+                    "patient_language"
+                ],
+                key=(
+                    f"existing_speak_guidelines_"
                     f"{consultation_id}"
                 ),
             )
@@ -258,6 +285,19 @@ def render_prescription(
             ),
         )
 
+        render_speaker(
+            text=prescription[
+                "translated_prescription"
+            ] or "",
+            language=prescription[
+                "patient_language"
+            ],
+            key=(
+                f"generated_speak_prescription_"
+                f"{consultation_id}"
+            ),
+        )
+
     st.markdown("### Doctor Guidelines")
 
     col1, col2 = st.columns(2)
@@ -288,6 +328,19 @@ def render_prescription(
             disabled=True,
             key=(
                 f"generated_translated_guidelines_"
+                f"{consultation_id}"
+            ),
+        )
+
+        render_speaker(
+            text=prescription[
+                "translated_guidelines"
+            ] or "",
+            language=prescription[
+                "patient_language"
+            ],
+            key=(
+                f"generated_speak_guidelines_"
                 f"{consultation_id}"
             ),
         )
