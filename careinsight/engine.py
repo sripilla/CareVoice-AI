@@ -199,6 +199,12 @@ class CareVoiceEngine:
             "patient_id": patient_details["patient_id"],
             "patient_name": patient_details["patient_name"],
             "age": patient_details["age"],
+            "blood_pressure": patient_details.get(
+            "blood_pressure"),
+            "weight": patient_details.get(
+            "weight"),
+            "blood_sugar": patient_details.get(
+            "blood_sugar"),
             "symptoms": clinical_data["symptoms"],
             "conditions": clinical_data["conditions"],
             "medications": clinical_data["medications"],

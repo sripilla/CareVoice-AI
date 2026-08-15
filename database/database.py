@@ -41,6 +41,12 @@ class DatabaseManager:
 
         timestamp TEXT NOT NULL,
 
+        blood_pressure TEXT,
+
+        weight REAL,
+
+        blood_sugar REAL,
+
         detected_language TEXT,
 
         original_transcript TEXT,
@@ -120,6 +126,9 @@ class DatabaseManager:
 
         patient_id,
         timestamp,
+        blood_pressure,
+        weight,
+        blood_sugar,
         detected_language,
         original_transcript,
         english_transcript,
@@ -134,7 +143,7 @@ class DatabaseManager:
 
     )
 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
 
     GET_PATIENT_QUERY = """
@@ -230,6 +239,45 @@ class DatabaseManager:
             "PRAGMA foreign_keys = ON"
         )
 
+    def _add_consultation_columns_if_missing(self):
+        """
+        Add optional clinical measurement columns to an
+        existing consultations table if they are missing.
+        """
+
+        self.cursor.execute(
+            "PRAGMA table_info(consultations)"
+        )
+
+        existing_columns = {
+            row["name"]
+            for row in self.cursor.fetchall()
+        }
+
+        required_columns = {
+            "blood_pressure": "TEXT",
+            "weight": "REAL",
+            "blood_sugar": "REAL",
+        }
+
+        for column_name, column_type in (
+            required_columns.items()
+        ):
+
+            if column_name not in existing_columns:
+
+                self.cursor.execute(
+                    f"""
+                    ALTER TABLE consultations
+                    ADD COLUMN {column_name} {column_type}
+                    """
+                )
+
+                logger.info(
+                    "Added column %s to consultations table.",
+                    column_name,
+                )
+
     def create_tables(self):
         """
         Create the patient, consultation and prescription tables.
@@ -242,6 +290,8 @@ class DatabaseManager:
         self.cursor.execute(
             self.CREATE_CONSULTATIONS_TABLE_QUERY
         )
+
+        self._add_consultation_columns_if_missing()
 
         self.cursor.execute(
             self.CREATE_PRESCRIPTIONS_TABLE_QUERY
@@ -324,6 +374,9 @@ class DatabaseManager:
             (
                 patient["patient_id"],
                 timestamp,
+                patient.get("blood_pressure"),
+                patient.get("weight"),
+                patient.get("blood_sugar"),
                 report["detected_language"],
                 report["original_transcript"],
                 report["english_transcript"],
@@ -387,10 +440,22 @@ class DatabaseManager:
             query,
             (
                 prescription["consultation_id"],
-                prescription.get("english_prescription", ""),
-                prescription.get("translated_prescription", ""),
-                prescription.get("english_guidelines", ""),
-                prescription.get("translated_guidelines", ""),
+                prescription.get(
+                    "english_prescription",
+                    "",
+                ),
+                prescription.get(
+                    "translated_prescription",
+                    "",
+                ),
+                prescription.get(
+                    "english_guidelines",
+                    "",
+                ),
+                prescription.get(
+                    "translated_guidelines",
+                    "",
+                ),
                 prescription["patient_language"],
                 timestamp,
             ),
