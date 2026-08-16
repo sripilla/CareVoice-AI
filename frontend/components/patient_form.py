@@ -1,9 +1,13 @@
 import streamlit as st
 
+from frontend.services.patient_service import (
+    get_patient_by_id,
+)
+
 
 def render_patient_form():
     """
-    Render the patient and optional clinical details form.
+    Render the patient profile and clinical details form.
 
     Returns
     -------
@@ -12,25 +16,90 @@ def render_patient_form():
         start_consultation : bool
     """
 
-    st.subheader("👤 Patient Details")
+    st.subheader("👤 Patient Profile")
+
+    # ==========================================================
+    # Patient ID
+    # ==========================================================
 
     patient_id = st.text_input(
         "Patient ID",
         placeholder="Example: P001",
+        key="patient_id_input",
     )
+
+    load_patient = st.button(
+        "Load Patient",
+    )
+
+    # ==========================================================
+    # Load Existing Patient
+    # ==========================================================
+
+    if load_patient:
+
+        if not patient_id.strip():
+
+            st.warning(
+                "Please enter a Patient ID."
+            )
+
+        else:
+
+            patient = get_patient_by_id(
+                patient_id.strip()
+            )
+
+            if patient is None:
+
+                st.session_state.patient_loaded = False
+                st.session_state.patient_name_input = ""
+                st.session_state.patient_age_input = None
+
+                st.info(
+                    "New patient. Please enter the "
+                    "patient details below."
+                )
+
+            else:
+
+                st.session_state.patient_loaded = True
+                st.session_state.patient_name_input = (
+                    patient["patient_name"]
+                )
+                st.session_state.patient_age_input = (
+                    patient["age"]
+                )
+
+                st.success(
+                    "Existing patient profile loaded."
+                )
+
+    # ==========================================================
+    # Patient Details
+    # ==========================================================
 
     patient_name = st.text_input(
         "Patient Name",
         placeholder="Enter patient name",
+        key="patient_name_input",
     )
 
     age = st.number_input(
         "Age",
         min_value=0,
         max_value=120,
-        value=None,
+        value=st.session_state.get(
+            "patient_age_input",
+            None,
+        ),
         step=1,
+        key="patient_age_input",
     )
+
+    # ==========================================================
+    # Clinical Measurements
+    # ==========================================================
 
     st.subheader("🩺 Clinical Measurements")
 
@@ -57,6 +126,10 @@ def render_patient_form():
         value=None,
         step=0.1,
     )
+
+    # ==========================================================
+    # Start Consultation
+    # ==========================================================
 
     start_consultation = st.button(
         "Start Consultation",
