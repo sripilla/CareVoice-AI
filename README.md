@@ -1,421 +1,362 @@
-🏥 CareVoice AI
+# 🏥 CareVoice AI
 
-Multilingual Clinical Speech Analysis, Patient Consultation Management and Intelligent Report Generation
+### Multilingual Clinical Speech Analysis and Intelligent Consultation Management
 
 <p align="center">
 
-AI-powered healthcare assistant that processes multilingual patient
-consultations and converts speech into structured clinical insights,
-risk assessments, reports, prescriptions, and consultation history.
+AI-powered healthcare application that converts multilingual patient speech into structured clinical information, risk assessments, clinical reports, prescriptions, and consultation history using Speech Recognition, Machine Translation, Natural Language Processing, and Deep Learning.
 
 </p>
 
-📌 Project Overview
+---
 
-CareVoice AI is an end-to-end AI-powered healthcare application
-designed to support the processing of multilingual patient
-consultations.
+## 📌 Project Overview
 
-The application allows a doctor or healthcare user to enter patient
-details, including identity and clinical measurements, upload or record
-consultation audio, and process the conversation through an AI/NLP
-pipeline.
+**CareVoice AI** is an end-to-end multilingual clinical consultation assistant designed to help process patient-doctor conversations.
 
-The system:
+The system allows a doctor to enter patient details, record or upload consultation audio, and process the conversation through an AI-powered pipeline.
 
-Accepts multilingual consultation audio.
+The application:
 
-Converts speech into text using Faster-Whisper.
+- Accepts multilingual patient consultation audio.
+- Automatically detects the spoken language.
+- Converts speech into text.
+- Translates the conversation into English.
+- Generates a clinical summary.
+- Extracts structured medical information.
+- Combines AI-extracted clinical data with doctor-provided patient details.
+- Performs rule-based clinical risk assessment.
+- Generates a structured clinical report.
+- Stores patient and consultation information in SQLite.
+- Supports prescription management.
+- Supports consultation history retrieval.
+- Provides REST APIs through FastAPI.
+- Provides a Streamlit-based user interface.
 
-Automatically detects the spoken language.
+CareVoice AI demonstrates the integration of multiple AI and NLP technologies into a complete healthcare-oriented application workflow.
 
-Translates the conversation into English.
+> **Note:** CareVoice AI is an academic project and is not intended to replace professional medical diagnosis or clinical decision-making.
 
-Generates a concise clinical summary.
+---
 
-Extracts structured medical information.
+# 🎯 Objectives
 
-Combines AI-extracted clinical information with doctor-provided
-patient details.
+The main objectives of CareVoice AI are:
 
-Performs rule-based clinical risk assessment.
+- Convert multilingual patient speech into text.
+- Automatically detect the language spoken by the patient.
+- Translate multilingual consultations into English.
+- Generate concise clinical summaries.
+- Extract important clinical information from the consultation.
+- Identify:
+  - Symptoms
+  - Medical conditions
+  - Existing medications
+  - Duration of symptoms
+- Collect doctor-provided patient information.
+- Store patient measurements such as:
+  - Blood pressure
+  - Weight
+  - Blood sugar
+- Combine structured patient information with AI-extracted clinical information.
+- Perform rule-based patient risk assessment.
+- Generate structured clinical reports.
+- Store patients and consultations in a SQLite database.
+- Save and retrieve prescriptions.
+- Retrieve patient consultation history.
+- Provide REST APIs for backend integration.
+- Provide an interactive Streamlit frontend.
 
-Generates a structured clinical report.
+---
 
-Stores patients, consultations, measurements, reports, and
-prescriptions in SQLite.
+# ✨ Features
 
-Provides REST APIs and a Streamlit-based user interface for
-interacting with the system.
+## 🎙 Multilingual Consultation Processing
 
-Supports consultation history retrieval and prescription management.
+- Upload consultation audio.
+- Process multilingual patient speech.
+- Automatic speech recognition using Faster-Whisper.
+- Automatic spoken language detection.
 
-Note: CareVoice AI is an academic NLP project and is intended to
-assist with information processing. It is not a substitute for
-professional medical diagnosis or clinical decision-making.
+## 🌍 Machine Translation
 
-🎯 Objectives
+- Translate multilingual consultations into English.
+- Uses Meta NLLB-200 for machine translation.
 
-Convert multilingual patient speech into text.
+## 📝 Clinical Summarization
 
-Automatically detect the spoken language.
+- Generates concise summaries of consultation text.
+- Uses Facebook BART Large CNN.
 
-Translate multilingual consultations into English.
+## 🩺 Clinical Information Extraction
 
-Extract important clinical information such as:
+Extracts structured clinical information including:
 
-Symptoms
+- Symptoms
+- Medical conditions
+- Existing medications
+- Duration
 
-Medical conditions
+Uses spaCy and rule-based medical patterns.
 
-Medications
+## 👤 Patient Information Management
 
-Duration
+Doctor-provided patient information includes:
 
-Generate concise clinical summaries.
+- Patient ID
+- Patient Name
+- Age
+- Blood Pressure
+- Weight
+- Blood Sugar
 
-Combine doctor-provided patient information with AI-extracted
-clinical information.
+The patient information is combined with the AI-extracted clinical information before risk assessment and report generation.
 
-Record clinical measurements such as:
+## ⚠️ Rule-Based Risk Assessment
 
-Blood pressure
+The system evaluates clinical information and generates:
 
-Weight
+- Risk Score
+- Risk Level
 
-Blood sugar
+Unknown symptoms and conditions can be safely ignored by the risk assessment logic.
 
-Perform patient risk assessment.
+## 📄 Clinical Report Generation
 
-Generate structured clinical reports.
+Generates a structured clinical report containing:
 
-Store patient and consultation information in a relational SQLite
-database.
-
-Maintain consultation history.
-
-Support prescription creation and retrieval.
-
-Provide REST APIs for application integration.
-
-Provide an interactive Streamlit interface for the consultation
-workflow.
-
-✨ Features
-
-🎙 Multilingual Consultation Processing
-
-Audio upload support
-
-Audio recording workflow
-
-Multilingual speech recognition
-
-Automatic language detection
-
-English translation
-
-🩺 Clinical Information Processing
-
-Medical entity extraction
-
-Symptom extraction
-
-Condition extraction
-
-Medication extraction
-
-Duration extraction
-
-Clinical text summarization
-
-Doctor-provided patient information integration
-
-⚠️ Risk Assessment
-
-Rule-based clinical risk assessment
-
-Risk score generation
-
-Risk-level classification
-
-Handling of unknown symptoms and conditions
-
-📄 Clinical Reporting
-
-Structured clinical report generation
-
-Patient information section
-
-Clinical measurements section
-
-AI-generated conversation summary
-
-Extracted symptoms, conditions, and medications
-
-Risk assessment section
-
-👩‍⚕️ Patient and Consultation Management
-
-Patient storage
-
-Patient updates when new consultations are added
-
-Consultation storage
-
-Consultation retrieval by ID
-
-Consultation retrieval by patient
-
-Consultation deletion
-
-Consultation history support
-
-💊 Prescription Management
-
-Prescription storage
-
-Prescription retrieval
-
-Integration with patient consultations
-
-💾 Database
-
-SQLite database integration
-
-Separate handling of patients and consultations
-
-Clinical measurements stored with consultations
-
-Prescription persistence
-
-⚡ Backend and APIs
-
-FastAPI backend
-
-REST API routes
-
-Pydantic schemas
-
-Interactive Swagger documentation
-
-🖥 Frontend
-
-Streamlit-based interface
-
-Modular component architecture
-
-Patient information form
-
-Audio uploader/recorder
-
-Analysis progress display
-
-Transcript and translation views
-
-Summary and medical entity views
-
-Risk assessment view
-
-Clinical report view
-
-Consultation history
-
-Prescription interface
-
-🧪 Testing
-
-The project uses PyTest for unit and integration-style testing of
-major components.
-
-Current automated test coverage includes:
-
-Database operations
-
-Patient operations
-
-Consultation operations
-
-Clinical measurements
-
-Prescription operations
-
-Risk assessment
-
-Report generation
-
-End-to-end engine orchestration with mocked AI components
-
-Current test status:
-
-20 passed
-
-🤖 AI Models and Processing Components
-
-Stage                    Model / Technology
-
-Speech Recognition       Faster-Whisper (large-v3)
-Language Detection       Whisper built-in language detection
-Machine Translation      Meta NLLB-200 Distilled 600M
-Clinical Summarization   Facebook BART Large CNN
-Medical NLP              spaCy (en_core_web_sm) + EntityRuler
-Risk Assessment          Rule-based clinical engine
-Report Generation        Template-based generator
-
-🏗 System Architecture
-
-                         ┌─────────────────────────────┐
-                         │     Doctor / Healthcare     │
-                         │          User               │
-                         └──────────────┬──────────────┘
-                                        │
-                     ┌──────────────────┴──────────────────┐
-                     ▼                                     ▼
-        Doctor-Provided Patient Details          Consultation Audio
-        - Patient ID                            - Upload
-        - Name                                  - Record
-        - Age
-        - Blood Pressure
-        - Weight
-        - Blood Sugar
-                     │                                     │
-                     └──────────────────┬──────────────────┘
-                                        ▼
-                         Faster-Whisper Speech Recognition
-                                        │
-                                        ▼
-                         Automatic Language Detection
-                                        │
-                                        ▼
-                           NLLB-200 Translation
-                                        │
-                                        ▼
-                              English Transcript
-                                        │
-                         ┌──────────────┴──────────────┐
-                         ▼                             ▼
-                 spaCy + EntityRuler             BART Summarizer
-              Clinical Information Extraction    Clinical Summary
-                         │                             │
-                         └──────────────┬──────────────┘
-                                        ▼
-                       Combine Patient + Clinical Data
-                                        │
-                                        ▼
-                       Rule-Based Risk Assessment
-                                        │
-                                        ▼
-                         Clinical Report Generator
-                                        │
-                     ┌──────────────────┴──────────────────┐
-                     ▼                                     ▼
-              SQLite Database                       FastAPI REST API
-         Patients / Consultations /                Reports / Data
-         Measurements / Prescriptions                     │
-                     │                                     ▼
-                     └──────────────────────────► Streamlit Dashboard
-                                                   - Consultation
-                                                   - Results
-                                                   - History
-                                                   - Prescription
-
-🔄 Complete Workflow
-
-1. Enter Patient Details
-        │
-        ▼
-2. Enter Clinical Measurements
-        │
-        ▼
-3. Upload or Record Consultation Audio
-        │
-        ▼
-4. Speech Recognition
-        │
-        ▼
-5. Language Detection
-        │
-        ▼
-6. Translation to English
-        │
-        ▼
-7. Clinical Summarization
-        │
-        ▼
-8. Medical Entity Extraction
-        │
-        ▼
-9. Combine Patient + Extracted Clinical Data
-        │
-        ▼
-10. Risk Assessment
-        │
-        ▼
-11. Clinical Report Generation
-        │
-        ▼
-12. Save Patient and Consultation
-        │
-        ▼
-13. Store Measurements and Prescription
-        │
-        ▼
-14. View Report / History / Prescription
-
-🛠 Technology Stack
-
-Programming Language
-
-Python 3.11+
-
-Speech Processing
-
-Faster-Whisper
-
-CTranslate2
-
-Machine Translation
-
-Meta NLLB-200 Distilled 600M
-
-Natural Language Processing
-
-spaCy
-
-EntityRuler
-
-Deep Learning
-
-Facebook BART Large CNN
-
-PyTorch
-
-Hugging Face Transformers
-
-Backend
-
-FastAPI
-
-Uvicorn
-
-Pydantic
-
-Database
-
-SQLite
-
-Frontend
-
-Streamlit
-
-Testing
-
-PyTest
-
-pytest-cov
-
-📁 Project Structure
-
+- Clinical summary
+- Conversation summary
+- Patient information
+- Clinical measurements
+- Symptoms
+- Conditions
+- Existing medications
+- Duration
+- Risk assessment
+
+## 💊 Prescription Management
+
+Supports storing and retrieving consultation-related prescriptions.
+
+## 📋 Consultation History
+
+Supports:
+
+- Retrieving previous consultations.
+- Retrieving consultations by patient.
+- Viewing consultation details.
+- Accessing previous clinical reports and associated information.
+
+## 💾 SQLite Database Storage
+
+Stores structured healthcare information including:
+
+- Patients
+- Consultations
+- Clinical information
+- Measurements
+- Prescriptions
+
+## ⚡ FastAPI Backend
+
+Provides REST APIs for application integration.
+
+## 🖥 Streamlit Frontend
+
+Provides an interactive user interface for:
+
+- Patient information entry.
+- Audio upload and processing.
+- Consultation analysis.
+- Transcript display.
+- English translation.
+- Clinical summary.
+- Medical entity display.
+- Risk assessment.
+- Clinical report viewing.
+- Prescription management.
+- Consultation history.
+
+## 🧪 Automated Testing
+
+The project uses **pytest** for automated testing.
+
+Current test coverage includes:
+
+- Database operations
+- Patient storage and retrieval
+- Consultation storage and retrieval
+- Consultation measurements
+- Patient updates
+- Prescription storage and retrieval
+- Consultation deletion
+- Risk assessment
+- Unknown symptom handling
+- Unknown condition handling
+- Clinical report generation
+- Missing measurement handling
+- End-to-end engine pipeline with mocked AI components
+
+
+## 🤖 **AI Models and Processing Components**
+
+| Stage                      | Technology / Model                  |
+| -------------------------- | ----------------------------------- |
+| Speech Recognition         | Faster-Whisper                      |
+| Speech Model               | Whisper `large-v3`                  |
+| Language Detection         | Whisper Built-in Language Detection |
+| Machine Translation        | Meta NLLB-200 Distilled 600M        |
+| Clinical Summarization     | Facebook BART Large CNN             |
+| Medical NLP                | spaCy `en_core_web_sm`              |
+| Clinical Entity Extraction | EntityRuler + Medical Patterns      |
+| Risk Assessment            | Rule-Based Clinical Engine          |
+| Report Generation          | Template-Based Generator            |
+
+
+## 🏗️ **System Architecture**
+
+                         👤 Doctor
+                            │
+                            ▼
+                 Patient Information Entry
+                            │
+                            ▼
+                 🎙 Consultation Audio
+                    Record / Upload
+                            │
+                            ▼
+              Faster-Whisper Speech Recognition
+                            │
+                            ▼
+                Automatic Language Detection
+                            │
+                            ▼
+             Meta NLLB-200 Machine Translation
+                            │
+                            ▼
+                     English Transcript
+                            │
+              ┌─────────────┴─────────────┐
+              ▼                           ▼
+       Clinical Summarization      Medical Information
+          BART Large CNN              Extraction
+                                      spaCy + Rules
+              │                           │
+              └─────────────┬─────────────┘
+                            ▼
+                Combine Patient + Clinical Data
+                            │
+                            ▼
+                 Rule-Based Risk Assessment
+                            │
+                            ▼
+                 Clinical Report Generation
+                            │
+                    ┌───────┴────────┐
+                    ▼                ▼
+             SQLite Database      Prescription
+                    │
+                    ▼
+          Consultation History Retrieval
+                    │
+                    ▼
+          FastAPI REST API + Streamlit UI
+
+
+
+## 🔄 Complete Consultation Workflow
+
+```text
+┌─────────────────────────────────────────────┐
+│ 1. Doctor enters patient information        │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 2. Record or upload consultation audio      │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 3. Speech-to-Text using Faster-Whisper      │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 4. Automatic language detection             │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 5. Translation into English using NLLB-200  │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 6. Clinical summarization using BART        │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 7. Medical information extraction           │
+│    using spaCy                              │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 8. Combine patient details with extracted   │
+│    clinical information                     │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 9. Rule-based clinical risk assessment      │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 10. Generate structured clinical report     │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 11. Save patient and consultation to SQLite │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 12. Add prescription information            │
+└──────────────────────┬──────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────┐
+│ 13. Retrieve consultation history           │
+│     when required                           │
+└─────────────────────────────────────────────┘
+```
+
+
+
+
+# 🛠️ Technology Stack
+
+| Category | Technologies |
+|---|---|
+| 💻 Programming Language | Python 3.11+ |
+| 🎙️ Speech Processing | Faster-Whisper, CTranslate2 |
+| 🌍 Machine Translation | Meta NLLB-200 Distilled 600M |
+| 🧠 Natural Language Processing | spaCy, EntityRuler, Rule-Based Medical Patterns |
+| 🤖 Deep Learning | Facebook BART Large CNN, PyTorch, Hugging Face Transformers |
+| ⚙️ Backend | FastAPI, Uvicorn, Pydantic |
+| 🗄️ Database | SQLite |
+| 🖥️ Frontend | Streamlit |
+| 🧪 Testing | pytest, pytest-cov, unittest.mock |
+
+
+## 📁 Project Structure
+
+```text
 CareVoice-AI/
 │
 ├── api/
@@ -487,6 +428,7 @@ CareVoice-AI/
 │   └── metadata/
 │
 ├── uploads/
+│
 ├── reports/
 │
 ├── tests/
@@ -500,118 +442,57 @@ CareVoice-AI/
 ├── pytest.ini
 ├── requirements.txt
 └── README.md
+```
 
-__pycache__ directories are generated automatically by Python and
-are not part of the source structure.
 
-🧩 Core Modules
+## 🔄 Core Pipeline
 
-careinsight/engine.py
+The main orchestration logic is handled by `careinsight/engine.py`.
 
-The main orchestration layer.
+The `CareVoiceEngine` coordinates the complete AI pipeline.
 
-It coordinates:
-
+```text
 Audio
-  ↓
-Transcription
-  ↓
-Translation
-  ↓
-Summarization
-  ↓
-Clinical Information Extraction
-  ↓
-Combine Patient + Clinical Data
-  ↓
-Risk Assessment
-  ↓
-Report Generation
-  ↓
-Database Storage
+  │
+  ▼
+SpeechTranscriber
+  │
+  ▼
+Translator
+  │
+  ▼
+MedicalSummarizer
+  │
+  ▼
+MedicalExtractor
+  │
+  ▼
+Combine Patient Details
+  │
+  ▼
+RiskAssessor
+  │
+  ▼
+ReportGenerator
+  │
+  ▼
+DatabaseManager
+```
 
-The main pipeline accepts:
+### 👤 **Patient Data**
+The engine accepts:
 
-process_audio(
-    audio_path,
-    patient_details,
-)
+```python
+process_audio(audio_path, patient_details)
+```
 
-careinsight/extractor.py
+Patient details include information provided by the doctor before processing the consultation.
 
-Extracts structured clinical information from the English transcript,
-including:
+## 👤 Patient Data
 
-Symptoms
+Example doctor-provided patient details:
 
-Conditions
-
-Medications
-
-Duration
-
-careinsight/summarizer.py
-
-Generates a concise summary of the translated consultation.
-
-careinsight/risk_assessor.py
-
-Calculates:
-
-Risk score
-
-Risk level
-
-using the available patient and clinical information.
-
-careinsight/report_generator.py
-
-Creates a formatted clinical report containing:
-
-Patient identity
-
-Clinical measurements
-
-Clinical summary
-
-Conversation summary
-
-Symptoms
-
-Conditions
-
-Medications
-
-Duration
-
-Risk score
-
-Risk level
-
-database/database.py
-
-Manages persistent storage for application data, including:
-
-Patients
-
-Consultations
-
-Consultation measurements
-
-Prescriptions
-
-speech/transcriber.py
-
-Handles multilingual speech recognition using Faster-Whisper.
-
-translation/translator.py
-
-Translates detected multilingual text into English using NLLB-200.
-
-📥 Example Consultation Input
-
-Doctor-Provided Patient Details
-
+```json
 {
   "patient_id": "P001",
   "patient_name": "Lakshmi",
@@ -620,20 +501,24 @@ Doctor-Provided Patient Details
   "weight": 65,
   "blood_sugar": 150
 }
+```
 
-Patient Audio Content
+The system combines this information with AI-extracted clinical information.
 
-Example Telugu speech:
+## 🩺 Example Consultation Input
 
-నాకు మూడు రోజులుగా జ్వరం ఉంది. దగ్గు కూడా ఉంది.
+Example patient speech in Telugu:
 
-📤 Example Pipeline Output
+> నాకు మూడు రోజులుగా జ్వరం మరియు దగ్గు ఉంది.
 
+## 📊 Example Pipeline Output
+
+```json
 {
   "consultation_id": 1,
-  "original_transcript": "నాకు మూడు రోజులుగా జ్వరం ఉంది. దగ్గు కూడా ఉంది.",
+  "original_transcript": "నాకు మూడు రోజులుగా జ్వరం మరియు దగ్గు ఉంది.",
   "detected_language": "te",
-  "english_transcript": "I have had a fever for three days. I also have a cough.",
+  "english_transcript": "I have had fever and cough for three days.",
   "summary": "Patient reports fever and cough for three days.",
   "patient": {
     "patient_id": "P001",
@@ -647,344 +532,327 @@ Example Telugu speech:
       "cough"
     ],
     "conditions": [
-      "Hypertension",
       "Diabetes"
     ],
     "medications": [
       "Paracetamol"
     ],
-    "duration": "three days"
+    "duration": "3 days"
   },
   "risk": {
     "risk_score": 5,
     "risk_level": "High"
   },
-  "clinical_report": "..."
+  "clinical_report": "Generated Clinical Report"
 }
+```
 
-⚙️ Installation
 
-1. Clone the Repository
+## 🚀 Installation
 
+### 1️⃣ Clone the Repository
+
+```bash
 git clone https://github.com/<your-username>/CareVoice-AI.git
 cd CareVoice-AI
+```
 
-Replace <your-username> with your GitHub username.
+### 2️⃣ Create a Virtual Environment
 
-2. Create a Virtual Environment
-
+```bash
 python -m venv .venv
+```
 
-macOS / Linux
+#### 🍎 macOS / Linux
 
+```bash
 source .venv/bin/activate
+```
 
-Windows
+#### 🪟 Windows
 
+```bash
 .venv\Scripts\activate
+```
 
-3. Install Dependencies
+### 3️⃣ Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-If required, install the spaCy language model:
+## ▶️ Running the Project
 
-python -m spacy download en_core_web_sm
+### ▶️ Run the Main Application
 
-▶️ Running the Project
-
-Command Line
-
-Run the application pipeline:
-
+```bash
 python main.py
+```
 
-FastAPI Backend
+### 🚀 Run the FastAPI Backend
 
-Start the API server:
-
+```bash
 uvicorn api.app:app --reload
+```
 
-By default, the API will be available locally.
+The API will be available locally on port `8000`.
 
-Swagger UI
+### 🖥️ Run the Streamlit Frontend
 
-http://127.0.0.1:8000/docs
-
-ReDoc
-
-http://127.0.0.1:8000/redoc
-
-Streamlit Frontend
-
-Run the Streamlit application using the project's configured application
-entry point.
-
-For example, if your Streamlit entry file is streamlit_app.py in the
-project root:
-
+```bash
 streamlit run streamlit_app.py
+```
 
-If the entry point is moved or renamed, update the command accordingly.
 
-📡 REST API
+## 🔄 Complete Consultation Workflow
 
-The FastAPI application contains API routes and Pydantic schemas for
-interacting with CareVoice AI.
+The consultation flow includes:
 
-The exact available endpoints can be explored through the interactive
-Swagger documentation after starting the backend:
+```text
+👤 Patient Information
+        │
+        ▼
+🎙️ Record / Upload Consultation Audio
+        │
+        ▼
+✨ Analyze Consultation
+        │
+        ▼
+🗣️ Original Transcript
+        │
+        ▼
+🌐 English Translation
+        │
+        ▼
+📝 Clinical Summary
+        │
+        ▼
+🩺 Extracted Medical Information
+        │
+        ▼
+⚠️ Risk Assessment
+        │
+        ▼
+📄 Clinical Report
+        │
+        ▼
+💊 Prescription
+        │
+        ▼
+📋 Consultation History
+```
 
-http://127.0.0.1:8000/docs
+## 🗄️ Database Functionality
 
-🧪 Testing
+The SQLite database supports core consultation management functionality.
 
-CareVoice AI uses PyTest for automated testing.
+### The tested functionality includes:
 
-Run All Tests
+- Creating an empty database
+- Saving patients
+- Retrieving patients
+- Saving consultations
+- Retrieving consultations by ID
+- Saving consultation measurements
+- Retrieving consultations by patient
+- Updating patient information when a new consultation is added
+- Saving prescriptions
+- Retrieving prescriptions
+- Deleting consultations
 
+## 🧪 Testing
+
+The project uses **pytest** for automated testing.
+
+Run the complete test suite:
+
+```bash
 pytest -v
+```
 
-Current project test suite:
+## 🚀 Future Enhancements
 
-20 passed
+Potential future enhancements include:
 
-Test Database Operations
+- 📄 **PDF Clinical Report Download**  
+  Enable doctors to download generated clinical reports in PDF format.
 
-pytest tests/test_database.py -v
+- 🎨 **Improved Streamlit Dashboard Styling**  
+  Further enhance the user interface and overall user experience.
 
-This covers operations including:
+- 🌐 **Enhanced Multilingual Language Support**  
+  Extend support to additional Indian and international languages.
 
-Empty database
+- 🩺 **Improved Medical Entity Extraction**  
+  Enhance extraction accuracy for symptoms, conditions, medications, durations, and other clinical entities.
 
-Save and retrieve patient
+- 🧠 **Domain-Specific Medical NLP Models**  
+  Integrate specialized NLP models trained on medical and clinical datasets.
 
-Save consultation
+- 📊 **Data Refinement and Model Evaluation**  
+  Use curated or custom clinical consultation datasets for improved performance, evaluation, and benchmarking.
 
-Retrieve consultation by ID
+- 🤖 **Machine Learning-Based Risk Prediction**  
+  Replace or complement the current rule-based risk assessment with machine learning models.
 
-Save consultation measurements
+- 🔐 **Doctor Authentication**  
+  Add secure authentication for doctors and authorized users.
 
-Retrieve consultations by patient
+- 👥 **Role-Based Access Control**  
+  Support different access levels for doctors, administrators, and other authorized users.
 
-Update patient information
+- 🔎 **Enhanced Patient History Search**  
+  Provide advanced search and filtering capabilities for patient consultation history.
 
-Save and retrieve prescriptions
+- 🏥 **Electronic Health Record (EHR) Integration**  
+  Integrate with Electronic Health Record systems for improved clinical data management.
 
-Delete consultation
+- 🔍 **Retrieval-Augmented Generation (RAG)**  
+  Add RAG-based medical question-answering capabilities using trusted medical knowledge sources.
 
-Test Risk Assessment
+- ⚕️ **Clinical Decision Support Features**  
+  Provide additional decision-support capabilities to assist healthcare professionals.
 
-pytest tests/test_risk_assessor.py -v
+- 🐳 **Docker Containerization**  
+  Containerize the application for easier deployment and environment consistency.
 
-This validates:
+- ☸️ **Kubernetes Deployment**  
+  Support scalable container orchestration and deployment.
 
-Low-risk patients
+- ☁️ **Cloud Deployment**  
+  Deploy the application using cloud platforms such as AWS or Azure.
 
-Elderly patient risk
+## 🎓 Academic and NLP Concepts Demonstrated
 
-Symptom-based risk
+CareVoice AI demonstrates the practical integration of multiple **Natural Language Processing and AI concepts**:
 
-Condition-based risk
+### 🗣️ Speech and Language Processing
 
-High-risk patients
+- **Automatic Speech Recognition (ASR)**  
+  Converts recorded consultation audio into text using Faster-Whisper.
 
-Empty patient data
+- **Language Identification**  
+  Automatically detects the language of the consultation audio.
 
-Unknown symptoms
+- **Neural Machine Translation (NMT)**  
+  Translates multilingual consultation transcripts into English using NLLB-200.
 
-Unknown conditions
+- **Text Summarization**  
+  Generates concise clinical summaries using the BART model.
 
-Test Report Generation
+### 🧠 Natural Language Processing
 
-pytest tests/test_report_generator.py -v
+- **Named Entity Recognition (NER)**  
+  Identifies important clinical information from consultation text.
 
-This validates:
+- **Rule-Based Information Extraction**  
+  Extracts symptoms, conditions, medications, durations, and other medical information using spaCy EntityRuler and custom medical patterns.
 
-Complete clinical report generation
+- **Clinical Text Processing**  
+  Processes unstructured consultation text and transforms it into meaningful clinical information.
 
-Missing measurement handling
+- **Structured Information Extraction**  
+  Converts extracted information into structured data that can be used for reports and database storage.
 
-Test End-to-End Engine Orchestration
+### ⚕️ Clinical Intelligence
 
-pytest tests/test_engine.py -v
+- **Rule-Based Classification**  
+  Performs clinical risk assessment based on predefined rules and extracted patient information.
 
-The engine test mocks heavy AI components and validates the complete
-orchestration flow:
+- **Deep Learning Model Integration**  
+  Integrates transformer-based deep learning models for translation and clinical summarization.
 
-Transcription
-→ Translation
-→ Summarization
-→ Clinical Extraction
-→ Patient Data Combination
-→ Risk Assessment
-→ Report Generation
-→ Database Save
+### 🔄 Software Engineering and AI Integration
 
-🖥 User Interface Workflow
+- **End-to-End NLP Pipeline Design**  
+  Connects speech recognition, language detection, translation, summarization, medical information extraction, risk assessment, and report generation into a single workflow.
 
-The frontend is designed around the patient consultation workflow.
+- **REST API Integration**  
+  Uses FastAPI to expose backend functionality through API endpoints.
 
-New Consultation
-      │
-      ├── Enter Patient Details
-      ├── Enter Clinical Measurements
-      ├── Record or Upload Audio
-      │
-      ▼
-Start Analysis
-      │
-      ▼
-Analysis Progress
-      │
-      ├── Speech Recognition
-      ├── Language Detection
-      ├── Translation
-      ├── Summarization
-      ├── Medical Information Extraction
-      ├── Risk Assessment
-      └── Report Generation
-      │
-      ▼
-Consultation Results
-      │
-      ├── Transcript
-      ├── Translation
-      ├── Summary
-      ├── Medical Entities
-      ├── Risk Assessment
-      └── Clinical Report
-      │
-      ├── Consultation History
-      └── Prescription Management
+- **Database Persistence**  
+  Stores patient, consultation, clinical, and prescription information using SQLite.
 
-🔒 Important Disclaimer
+- **Automated Unit and Integration Testing**  
+  Uses pytest to test major components and validate application functionality.
 
-CareVoice AI is developed for academic and research purposes as part
-of an NLP project.
+## 📚 References and Technologies
 
-The application:
+The project uses the following open-source technologies, frameworks, and AI models:
 
-Does not provide a medical diagnosis.
+### 🤖 AI and Speech Models
 
-Does not replace a qualified doctor or healthcare professional.
+- **OpenAI Whisper**
+- **Faster-Whisper**
+- **CTranslate2**
 
-Does not guarantee the clinical accuracy of AI-generated
-transcripts, translations, summaries, extracted entities, or risk
-assessments.
+### 🌐 Machine Translation
 
-Should not be used as the sole basis for treatment or emergency
-medical decisions.
+- **Meta NLLB-200**
 
-All clinical output should be reviewed by a qualified healthcare
-professional.
+### 📝 Text Summarization
 
-🔮 Future Enhancements
+- **Facebook BART**
 
-Potential future improvements include:
+### 🧠 NLP and Deep Learning
 
-📊 Enhanced doctor dashboard and analytics
+- **Hugging Face Transformers**
+- **spaCy**
+- **PyTorch**
 
-📄 Improved PDF report download and formatting
+### ⚙️ Backend and API
 
-🔍 Advanced patient history search and filtering
+- **FastAPI**
+- **Uvicorn**
+- **Pydantic**
 
-🏥 Electronic Health Record (EHR) integration
+### 🗄️ Database
 
-🤖 Retrieval-Augmented Generation (RAG) for medical question
-answering
+- **SQLite**
 
-🧠 LLM-assisted clinical decision support
+### 🖥️ Frontend
 
-📈 Machine learning-based risk prediction
+- **Streamlit**
 
-🌐 Expanded multilingual language support
+### 🧪 Testing
 
-🔐 Authentication and role-based access control
+- **pytest**
 
-🐳 Docker containerization
+## ⚠️ Disclaimer
 
-☸️ Kubernetes deployment experiments
+CareVoice AI is developed for **academic and research purposes**.
 
-☁️ Cloud deployment using AWS or Azure
+The application is designed to demonstrate the practical use of **Artificial Intelligence (AI)** and **Natural Language Processing (NLP)** techniques for processing clinical conversations.
 
-📡 Production API deployment
+> **Important:** CareVoice AI is not a medical device and must not be used as a replacement for professional healthcare services.
 
-📊 Model evaluation using larger clinical or domain-specific
-datasets
+It should **not** be used as a replacement for:
 
-🧪 Expanded automated test coverage
+- Professional medical diagnosis
+- Clinical examination
+- Emergency medical advice
+- Professional healthcare decision-making
 
-🔄 CI/CD integration
+All AI-generated summaries, extracted medical information, risk assessments, and clinical reports should be **reviewed and validated by qualified healthcare professionals**.
 
-📱 Improved responsive UI experience
+---
 
-📚 References and Technologies
+## 🙏 Acknowledgements
 
-This project integrates open-source AI models and frameworks including:
+CareVoice AI integrates open-source AI models, frameworks, and technologies developed and maintained by the following organizations and communities:
 
-OpenAI Whisper
+- **OpenAI** — Whisper
+- **Faster-Whisper Community** — Faster-Whisper
+- **Meta AI** — NLLB-200
+- **Hugging Face** — Transformers and model ecosystem
+- **Facebook AI Research** — BART
+- **spaCy Community** — Natural Language Processing framework
+- **FastAPI Community** — Backend API framework
+- **Streamlit Community** — Frontend application framework
+- **PyTorch Community** — Deep learning framework
 
-Faster-Whisper
+The project acknowledges the contributions of these open-source communities and researchers whose tools, models, and frameworks support the development of modern AI and NLP applications.
 
-CTranslate2
 
-Meta NLLB-200
 
-Facebook BART
 
-spaCy
-
-Hugging Face Transformers
-
-PyTorch
-
-FastAPI
-
-Pydantic
-
-Uvicorn
-
-Streamlit
-
-SQLite
-
-PyTest
-
-📄 License
-
-This project was developed for academic purposes as part of the
-Natural Language Processing Minor Specialisation.
-
-Please review the licenses of all third-party models and libraries
-before using the project in a production environment.
-
-⭐ Acknowledgements
-
-CareVoice AI integrates and builds upon the open-source ecosystem,
-including:
-
-OpenAI
-
-Faster-Whisper contributors
-
-Meta AI
-
-Hugging Face
-
-spaCy
-
-FastAPI community
-
-Streamlit community
-
-PyTest community
-
-<p align="center">
-
-Built as an academic NLP project to explore the integration of
-multilingual speech processing, machine translation, natural language
-processing, clinical information extraction, and intelligent healthcare
-workflow support.
-
-</p>
