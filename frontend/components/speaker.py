@@ -46,6 +46,7 @@ def render_speaker(
         f"""
         <button
             id="{key}"
+            type="button"
             style="
                 padding: 8px 16px;
                 border-radius: 6px;
@@ -62,21 +63,33 @@ def render_speaker(
                 "{key}"
             );
 
-            button.onclick = function() {{
+            button.addEventListener("click", function() {{
+                const text = {text_json};
+                const language = {language_json};
+
+                if (!text || !text.trim()) {{
+                    return;
+                }}
+
                 window.speechSynthesis.cancel();
 
-                const utterance =
-                    new SpeechSynthesisUtterance(
-                        {text_json}
+                setTimeout(function() {{
+                    const utterance =
+                        new SpeechSynthesisUtterance(text);
+
+                    utterance.lang = language;
+
+                    utterance.rate = 1;
+                    utterance.pitch = 1;
+
+                    window.speechSynthesis.resume();
+
+                    window.speechSynthesis.speak(
+                        utterance
                     );
-
-                utterance.lang = {language_json};
-
-                window.speechSynthesis.speak(
-                    utterance
-                );
-            }};
+                }}, 100);
+            }});
         </script>
         """,
-        height=50,
+        height=55,
     )
