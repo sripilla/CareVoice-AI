@@ -28,8 +28,6 @@ def test_process_audio_pipeline():
 
     engine.extractor.extract = MagicMock(
         return_value={
-            "patient_name": "Lakshmi",
-            "age": 70,
             "symptoms": ["fever"],
             "conditions": ["Diabetes"],
             "medications": [],
@@ -48,16 +46,34 @@ def test_process_audio_pipeline():
         return_value="Clinical Report"
     )
 
-    engine.database.save_report = MagicMock()
+    engine._save_report = MagicMock(
+        return_value=1
+    )
+
+    # ------------------------------------------------------
+    # Doctor-provided patient details
+    # ------------------------------------------------------
+
+    patient_details = {
+        "patient_id": "P001",
+        "patient_name": "Lakshmi",
+        "age": 70,
+        "blood_pressure": "140/90",
+        "weight": 65,
+        "blood_sugar": 150,
+    }
 
     # ------------------------------------------------------
     # Execute
     # ------------------------------------------------------
 
-    report = engine.process_audio("dummy.wav")
+    report = engine.process_audio(
+        audio_path="dummy.wav",
+        patient_details=patient_details,
+    )
 
     # ------------------------------------------------------
-    # Assertions
+    # Verify pipeline output
     # ------------------------------------------------------
 
     assert report["original_transcript"] == "నాకు జ్వరం ఉంది"
@@ -68,10 +84,55 @@ def test_process_audio_pipeline():
 
     assert report["summary"] == "Patient reports fever."
 
+    assert report["patient"]["patient_id"] == "P001"
+
     assert report["patient"]["patient_name"] == "Lakshmi"
+
+    assert report["patient"]["age"] == 70
+
+    assert report["patient"]["blood_pressure"] == "140/90"
+
+    assert report["patient"]["weight"] == 65
+
+    assert report["patient"]["blood_sugar"] == 150
+
+    assert report["patient"]["symptoms"] == ["fever"]
+
+    assert report["patient"]["conditions"] == ["Diabetes"]
+
+    assert report["patient"]["duration"] == "3 days"
+
+    assert report["risk"]["risk_score"] == 5
 
     assert report["risk"]["risk_level"] == "High"
 
     assert report["clinical_report"] == "Clinical Report"
 
-    engine.database.save_report.assert_called_once()
+    assert report["consultation_id"] == 1
+
+    # ------------------------------------------------------
+    # Verify important pipeline calls
+    # ------------------------------------------------------
+
+    engine.transcriber.transcribe.assert_called_once_with(
+        "dummy.wav"
+    )
+
+    engine.translator.translate.assert_called_once_with(
+        "నాకు జ్వరం ఉంది",
+        "te",
+    )
+
+    engine.summarizer.summarize_text.assert_called_once_with(
+        "I have fever."
+    )
+
+    engine.extractor.extract.assert_called_once_with(
+        "I have fever."
+    )
+
+    engine.risk_assessor.assess.assert_called_once_with(
+        report["patient"]
+    )
+
+    engine._save_report.assert_called_once()
