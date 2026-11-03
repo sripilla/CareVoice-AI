@@ -4,6 +4,7 @@ import shutil
 from fastapi import (
     APIRouter,
     File,
+    Form,
     HTTPException,
     Request,
     UploadFile,
@@ -59,6 +60,9 @@ def home():
 async def analyze_audio(
     request: Request,
     audio: UploadFile = File(...),
+    patient_id: str = Form(...),
+    patient_name: str = Form(...),
+    age: int = Form(...),
 ):
     """
     Analyze an uploaded audio file.
@@ -75,8 +79,15 @@ async def analyze_audio(
 
         engine = request.app.state.engine
 
+        patient_details = {
+            "patient_id": patient_id,
+            "patient_name": patient_name,
+            "age": age,
+        }
+
         return engine.process_audio(
-            str(file_path)
+            str(file_path),
+            patient_details,
         )
 
     except Exception:
