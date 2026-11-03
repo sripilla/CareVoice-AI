@@ -15,8 +15,16 @@ def main():
 
     engine = CareVoiceEngine()
 
+    patient_details = {
+        "patient_id": "P001",
+        "patient_name": "Sample Patient",
+        "age": 45,
+    }
+
+
     report = engine.process_audio(
-        str(DEFAULT_AUDIO_FILE)
+        str(DEFAULT_AUDIO_FILE),
+        patient_details,
     )
 
     logger.info("Clinical report generated successfully.")
