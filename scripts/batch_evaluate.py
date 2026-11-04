@@ -49,6 +49,29 @@ LANGUAGE_CODES = {
     "english": "en",
 }
 
+# Languages to actually evaluate in this run. Edit this list as more
+# languages get ground truth ready.
+ENABLED_LANGUAGES = ["telugu", "kannada"]
+
+# Per-language cap on file number (e.g. only KA01-KA15, skipping any
+# higher-numbered files that don't have audio yet).
+MAX_FILE_NUMBER = {
+    "kannada": 15,
+}
+
+
+def file_number(audio_path: Path) -> int | None:
+    """
+    Extract the trailing number from a filename like 'KA07.wav' -> 7.
+    Returns None if the filename doesn't end in digits.
+    """
+
+    digits = "".join(
+        ch for ch in audio_path.stem if ch.isdigit()
+    )
+
+    return int(digits) if digits else None
+
 
 def load_ground_truth(language: str) -> dict:
     """
@@ -92,6 +115,10 @@ def evaluate() -> list[dict]:
 
     for language, expected_code in LANGUAGE_CODES.items():
 
+        if language not in ENABLED_LANGUAGES:
+            print(f"Skipping '{language}': not in ENABLED_LANGUAGES.")
+            continue
+
         audio_dir = RAW_AUDIO_DIR / language
 
         if not audio_dir.exists():
@@ -100,7 +127,14 @@ def evaluate() -> list[dict]:
 
         ground_truth = load_ground_truth(language)
 
+        max_number = MAX_FILE_NUMBER.get(language)
+
         for audio_path in sorted(audio_dir.glob("*.wav")):
+
+            if max_number is not None:
+                number = file_number(audio_path)
+                if number is not None and number > max_number:
+                    continue
 
             entry = ground_truth.get(audio_path.name)
 
