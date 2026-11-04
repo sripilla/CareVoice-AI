@@ -34,6 +34,7 @@ huggingface_hub==1.26.0
 idna==3.18
 iniconfig==2.3.0
 itsdangerous==2.2.0
+jiwer==4.0.0
 Jinja2==3.1.6
 joblib==1.5.3
 jsonschema==4.26.0
