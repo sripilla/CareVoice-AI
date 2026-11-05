@@ -51,7 +51,7 @@ LANGUAGE_CODES = {
 
 # Languages to actually evaluate in this run. Edit this list as more
 # languages get ground truth ready.
-ENABLED_LANGUAGES = ["telugu", "kannada"]
+ENABLED_LANGUAGES = ["telugu", "kannada", "hindi"]
 
 # Per-language cap on file number (e.g. only KA01-KA15, skipping any
 # higher-numbered files that don't have audio yet).
