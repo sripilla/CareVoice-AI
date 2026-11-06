@@ -1,0 +1,7 @@
+{
+  "files_evaluated": 20,
+  "language_detection_accuracy": 1.0,
+  "average_wer": 0.400915,
+  "average_cer": 0.287265,
+  "average_processing_time_sec": 45.0875
+}
