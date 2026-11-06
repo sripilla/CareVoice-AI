@@ -79,6 +79,7 @@ LANGUAGE_CODES = {
     "kannada": "kn",
     "hindi": "hi",
     "english": "en",
+    "tamil": "ta",
 }
 
 # Per-language cap on file number (e.g. only KA01-KA15, skipping any
