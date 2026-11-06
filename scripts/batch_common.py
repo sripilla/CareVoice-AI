@@ -39,6 +39,23 @@ try:
 except ImportError:
     jiwer = None
 
+if jiwer is not None:
+    # Normalize case/punctuation/whitespace before comparing, so
+    # formatting differences between the reference text and Whisper's
+    # raw output (e.g. "Doctor," vs "doctor") aren't counted as word
+    # errors.
+    WER_TRANSFORM = jiwer.Compose(
+        [
+            jiwer.ToLowerCase(),
+            jiwer.RemovePunctuation(),
+            jiwer.RemoveMultipleSpaces(),
+            jiwer.Strip(),
+            jiwer.ReduceToListOfListOfWords(),
+        ]
+    )
+else:
+    WER_TRANSFORM = None
+
 RAW_AUDIO_DIR = BASE_DIR / "data" / "raw_audio"
 METADATA_DIR = BASE_DIR / "data" / "metadata"
 RESULTS_DIR = BASE_DIR / "reports" / "batch_evaluation"
@@ -96,7 +113,12 @@ def word_error_rate(reference: str, hypothesis: str):
     if not reference.strip() or not hypothesis.strip():
         return None
 
-    return jiwer.wer(reference, hypothesis)
+    return jiwer.wer(
+        reference,
+        hypothesis,
+        reference_transform=WER_TRANSFORM,
+        hypothesis_transform=WER_TRANSFORM,
+    )
 
 
 def evaluate(languages: list[str]) -> list[dict]:
