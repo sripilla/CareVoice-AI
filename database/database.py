@@ -169,6 +169,37 @@ class DatabaseManager:
     WHERE consultation_id = ?
     """
 
+    GET_ALL_REPORTS_QUERY = """
+    SELECT
+        c.consultation_id AS id,
+        c.timestamp,
+        p.patient_name,
+        p.age,
+        c.risk_level
+    FROM consultations c
+    JOIN patients p ON p.patient_id = c.patient_id
+    ORDER BY c.consultation_id DESC
+    """
+
+    GET_REPORT_DETAIL_QUERY = """
+    SELECT
+        c.consultation_id AS id,
+        c.timestamp,
+        p.patient_name,
+        p.age,
+        c.symptoms,
+        c.conditions,
+        c.medications,
+        c.duration,
+        c.summary,
+        c.risk_score,
+        c.risk_level,
+        c.clinical_report
+    FROM consultations c
+    JOIN patients p ON p.patient_id = c.patient_id
+    WHERE c.consultation_id = ?
+    """
+
     CONSULTATION_COUNT_QUERY = """
     SELECT COUNT(*)
     FROM consultations
@@ -529,6 +560,32 @@ class DatabaseManager:
 
         return self.cursor.fetchone()
 
+    def get_all_reports(self):
+        """
+        Return a summary of every saved report.
+        """
+
+        self.cursor.execute(
+            self.GET_ALL_REPORTS_QUERY
+        )
+
+        return self.cursor.fetchall()
+
+    def get_report_by_id(
+        self,
+        report_id: int,
+    ):
+        """
+        Return the full report for a consultation.
+        """
+
+        self.cursor.execute(
+            self.GET_REPORT_DETAIL_QUERY,
+            (report_id,),
+        )
+
+        return self.cursor.fetchone()
+    
     def get_consultation_count(self) -> int:
         """
         Return the total number of consultations.
@@ -564,6 +621,16 @@ class DatabaseManager:
             consultation_id,
         )
 
+    def delete_report(
+        self,
+        report_id: int,
+    ):
+        """
+        Delete a report (alias for delete_consultation).
+        """
+
+        self.delete_consultation(report_id)
+        
     # ======================================================
     # Cleanup
     # ======================================================

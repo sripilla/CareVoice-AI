@@ -1,0 +1,122 @@
+{
+  "EN01.wav": {
+    "title": "Cough, fever and headache",
+    "age": 28,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have had a fever and cough for the last three days. I also have a headache and feel very tired. My cough gets worse at night, so I am not sleeping properly. I do not feel like eating much either."
+  },
+  "EN02.wav": {
+    "title": "Recurring headache",
+    "age": 45,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I have been getting headaches quite often. Sometimes the pain is around my forehead, and sometimes my whole head hurts. Bright light makes it worse. It is also difficult for me to concentrate on my work when the headache starts."
+  },
+  "EN03.wav": {
+    "title": "Acidity and stomach burning",
+    "age": 34,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I feel a burning sensation in my stomach after eating. Sometimes I also feel it in my chest, and I get a sour taste in my throat. It becomes worse after I eat spicy or oily food. This has been happening quite regularly."
+  },
+  "EN04.wav": {
+    "title": "Lower back pain",
+    "age": 52,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I have been having pain in my lower back for the past two weeks. It is difficult to get up after sitting for a long time. The pain gets worse when I bend down to pick something up. Even walking for a while makes me uncomfortable."
+  },
+  "EN05.wav": {
+    "title": "Fatigue and weakness",
+    "age": 61,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have been feeling very tired and weak for the last few days. Even when I wake up in the morning, I do not feel refreshed. A little bit of work makes me feel exhausted. I also do not have much appetite, and I am not sure why this is happening."
+  },
+  "EN06.wav": {
+    "title": "Knee pain",
+    "age": 67,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I have pain in both my knees. It is especially difficult to climb up and down stairs. My knees feel stiff when I get up in the morning. Sometimes the pain increases even after walking a short distance."
+  },
+  "EN07.wav": {
+    "title": "Loose stools",
+    "age": 23,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I have been having loose motions since yesterday. My stomach makes noises and I also have some pain. Whenever I eat something, I feel like I need to use the toilet soon after. I am also feeling a little weak."
+  },
+  "EN08.wav": {
+    "title": "Constipation",
+    "age": 39,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have not been able to pass stools properly for the last few days. It takes a lot of effort, and my stomach feels bloated. Sometimes I also get mild stomach pain. I think I may not be drinking enough water."
+  },
+  "EN09.wav": {
+    "title": "Skin rash and itching",
+    "age": 31,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I have developed small red bumps on my hands and neck. They are very itchy, especially at night. I started using a new soap a few days ago, and I noticed these bumps after that. The itching is making it difficult to sleep."
+  },
+  "EN10.wav": {
+    "title": "Difficulty sleeping",
+    "age": 48,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have not been sleeping properly for the last few weeks. Even after going to bed, I stay awake for a long time. I also wake up several times during the night. In the morning, I still feel tired, as if I have not rested at all."
+  },
+  "EN11.wav": {
+    "title": "Menstrual irregularity",
+    "age": 38,
+    "gender": "Female",
+    "reference_transcript": "Doctor, my periods have not been coming regularly. Some months they come earlier than expected, and other months they are delayed. I also get quite a lot of pain when my period starts. This has been happening for the last few months."
+  },
+  "EN12.wav": {
+    "title": "Urinary discomfort",
+    "age": 26,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I feel a burning sensation when I pass urine. I also feel like going to the toilet very frequently, but only a small amount of urine comes out each time. I have some mild pain in my lower abdomen too. This has been happening for two or three days."
+  },
+  "EN13.wav": {
+    "title": "Toothache",
+    "age": 19,
+    "gender": "Male",
+    "reference_transcript": "Doctor, one of my back teeth has been hurting a lot. It is difficult to chew food. The pain becomes worse when I eat or drink something very hot or cold. Sometimes the pain seems to spread towards my ear as well."
+  },
+  "EN14.wav": {
+    "title": "Ear pain",
+    "age": 56,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have had pain in my right ear for the last two days. It feels as if my ear is blocked. Sometimes I cannot hear sounds clearly from that side. The pain seems to become worse at night."
+  },
+  "EN15.wav": {
+    "title": "Dizziness",
+    "age": 72,
+    "gender": "Male",
+    "reference_transcript": "Doctor, I feel dizzy when I stand up. Sometimes I also feel unsteady while walking, as if I might lose my balance. I am worried that I may fall. This has been happening quite often recently."
+  },
+  "EN16.wav": {
+    "title": "Breathlessness during activity",
+    "age": 64,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I get breathless even after walking a short distance. Climbing stairs has become very difficult for me. I did not have this problem earlier. Now, even after doing small household tasks, I feel that I need to sit down and rest."
+  },
+  "EN17.wav": {
+    "title": "Palpitations",
+    "age": 42,
+    "gender": "Male",
+    "reference_transcript": "Doctor, sometimes my heart suddenly starts beating very fast. At that time, I feel a fluttering sensation in my chest and become a little anxious. It usually settles down after a few minutes. But whenever it happens, I feel worried."
+  },
+  "EN18.wav": {
+    "title": "Dry eyes",
+    "age": 35,
+    "gender": "Female",
+    "reference_transcript": "Doctor, my eyes often feel very dry. When I work on the computer for a long time, I get a burning sensation. Sometimes it feels as if there is dust or sand in my eyes. I have to blink repeatedly to feel comfortable."
+  },
+  "EN19.wav": {
+    "title": "Neck and shoulder stiffness",
+    "age": 58,
+    "gender": "Male",
+    "reference_transcript": "Doctor, my neck and shoulders have been feeling very stiff. It hurts when I turn my head to either side. The pain gets worse when I sit in front of the computer for a long time. In the morning, I also find it difficult to move my neck freely."
+  },
+  "EN20.wav": {
+    "title": "Nausea and reduced appetite",
+    "age": 75,
+    "gender": "Female",
+    "reference_transcript": "Doctor, I have not felt like eating much for the last few days. When I start eating, I feel nauseated. My stomach does not feel right, and even after eating a small amount, I feel full. This is making it difficult for me to eat normally."
+  }
+}
