@@ -11,6 +11,7 @@ data/metadata/<language>_ground_truth.json.
 
 Currently computes:
     - Word Error Rate (WER)
+    - Character Error Rate (CER)
     - Language Detection Accuracy
     - Average Processing Time
 
@@ -53,8 +54,21 @@ if jiwer is not None:
             jiwer.ReduceToListOfListOfWords(),
         ]
     )
+
+    # Same normalization, but reduced to characters instead of words,
+    # for Character Error Rate.
+    CER_TRANSFORM = jiwer.Compose(
+        [
+            jiwer.ToLowerCase(),
+            jiwer.RemovePunctuation(),
+            jiwer.RemoveMultipleSpaces(),
+            jiwer.Strip(),
+            jiwer.ReduceToListOfListOfChars(),
+        ]
+    )
 else:
     WER_TRANSFORM = None
+    CER_TRANSFORM = None
 
 RAW_AUDIO_DIR = BASE_DIR / "data" / "raw_audio"
 METADATA_DIR = BASE_DIR / "data" / "metadata"
@@ -118,6 +132,26 @@ def word_error_rate(reference: str, hypothesis: str):
         hypothesis,
         reference_transform=WER_TRANSFORM,
         hypothesis_transform=WER_TRANSFORM,
+    )
+
+
+def character_error_rate(reference: str, hypothesis: str):
+    """
+    Compute CER between a reference and hypothesis transcript.
+    Returns None if jiwer isn't installed or either string is empty.
+    """
+
+    if jiwer is None:
+        return None
+
+    if not reference.strip() or not hypothesis.strip():
+        return None
+
+    return jiwer.cer(
+        reference,
+        hypothesis,
+        reference_transform=CER_TRANSFORM,
+        hypothesis_transform=CER_TRANSFORM,
     )
 
 
@@ -188,6 +222,7 @@ def evaluate(languages: list[str]) -> list[dict]:
                 "processing_time_sec": round(elapsed, 2),
                 "reference_transcript": None,
                 "wer": None,
+                "cer": None,
             }
 
             if entry and entry.get("reference_transcript"):
@@ -195,8 +230,13 @@ def evaluate(languages: list[str]) -> list[dict]:
                     entry["reference_transcript"],
                     transcript,
                 )
+                cer = character_error_rate(
+                    entry["reference_transcript"],
+                    transcript,
+                )
                 row["reference_transcript"] = entry["reference_transcript"]
                 row["wer"] = round(wer, 4) if wer is not None else None
+                row["cer"] = round(cer, 4) if cer is not None else None
 
             rows.append(row)
 
@@ -205,6 +245,7 @@ def evaluate(languages: list[str]) -> list[dict]:
                 f"lang={detected_language} "
                 f"({'OK' if row['language_correct'] else 'MISMATCH'}), "
                 f"wer={row['wer']}, "
+                f"cer={row['cer']}, "
                 f"time={elapsed:.2f}s"
             )
 
@@ -218,6 +259,7 @@ def summarize(rows: list[dict]) -> dict:
 
     valid_lang = [r for r in rows if "language_correct" in r]
     valid_wer = [r for r in rows if r.get("wer") is not None]
+    valid_cer = [r for r in rows if r.get("cer") is not None]
     valid_time = [r for r in rows if "processing_time_sec" in r]
 
     lang_accuracy = (
@@ -229,6 +271,12 @@ def summarize(rows: list[dict]) -> dict:
     avg_wer = (
         sum(r["wer"] for r in valid_wer) / len(valid_wer)
         if valid_wer
+        else None
+    )
+
+    avg_cer = (
+        sum(r["cer"] for r in valid_cer) / len(valid_cer)
+        if valid_cer
         else None
     )
 
@@ -254,6 +302,12 @@ def summarize(rows: list[dict]) -> dict:
     )
 
     print(
+        f"Average CER: {avg_cer:.4f}"
+        if avg_cer is not None
+        else "Average CER: N/A (no matching reference transcripts)"
+    )
+
+    print(
         f"Average Processing Time: {avg_time:.2f}s"
         if avg_time is not None
         else "Average Processing Time: N/A"
@@ -263,6 +317,7 @@ def summarize(rows: list[dict]) -> dict:
         "files_evaluated": len(rows),
         "language_detection_accuracy": lang_accuracy,
         "average_wer": avg_wer,
+        "average_cer": avg_cer,
         "average_processing_time_sec": avg_time,
     }
 
