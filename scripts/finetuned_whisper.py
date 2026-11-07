@@ -13,11 +13,27 @@ Models (community fine-tunes by vasista22, Apache-2.0):
 import soundfile as sf
 import torch
 import torchaudio
-from transformers import WhisperForConditionalGeneration, WhisperProcessor
+from transformers import (
+    GenerationConfig,
+    WhisperForConditionalGeneration,
+    WhisperProcessor,
+)
 
 FINETUNED_MODELS = {
     "te": "vasista22/whisper-telugu-large-v2",
     "kn": "vasista22/whisper-kannada-medium",
+}
+
+# These fine-tunes predate transformers' newer generate(language=...)
+# API and ship an incomplete generation_config.json (missing
+# lang_to_id/task_to_id/is_multilingual), which raises a ValueError on
+# current transformers versions. Each fine-tune is built on top of the
+# matching official OpenAI Whisper checkpoint (same architecture/vocab,
+# just different weights), so we load a complete generation_config from
+# that base checkpoint instead.
+BASE_GENERATION_CONFIGS = {
+    "te": "openai/whisper-large-v2",
+    "kn": "openai/whisper-medium",
 }
 
 TARGET_SAMPLE_RATE = 16000
@@ -47,15 +63,18 @@ class FineTunedTranscriber:
 
         self.model.eval()
 
+        # Replace the checkpoint's incomplete generation_config with a
+        # complete one from the matching official base model, so
+        # generate(language=..., task=...) works. See
+        # BASE_GENERATION_CONFIGS comment above for why.
+        self.model.generation_config = GenerationConfig.from_pretrained(
+            BASE_GENERATION_CONFIGS[language_code]
+        )
+
         # Force decoding in the fine-tuned language/task, matching how
         # these models are intended to be used (no auto language
         # detection needed since the checkpoint is single-language).
-        self.forced_decoder_ids = (
-            self.processor.get_decoder_prompt_ids(
-                language=language_code,
-                task="transcribe",
-            )
-        )
+        self.language_code = language_code
 
     def transcribe(self, audio_path: str) -> str:
         """
@@ -94,7 +113,8 @@ class FineTunedTranscriber:
         with torch.no_grad():
             predicted_ids = self.model.generate(
                 inputs.input_features,
-                forced_decoder_ids=self.forced_decoder_ids,
+                language=self.language_code,
+                task="transcribe",
             )
 
         transcript = self.processor.batch_decode(
