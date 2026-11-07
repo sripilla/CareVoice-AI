@@ -83,10 +83,9 @@ LANGUAGE_CODES = {
 }
 
 # Per-language cap on file number (e.g. only KA01-KA15, skipping any
-# higher-numbered files that don't have audio yet).
-MAX_FILE_NUMBER = {
-    "kannada": 15,
-}
+# higher-numbered files that don't have audio yet). Kannada now has
+# ground truth and audio for the full KA01-KA20, so no cap needed.
+MAX_FILE_NUMBER = {}
 
 
 def file_number(audio_path: Path) -> int | None:
