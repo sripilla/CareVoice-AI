@@ -10,6 +10,7 @@ Models (community fine-tunes by vasista22, Apache-2.0):
              best available size)
 """
 
+import soundfile as sf
 import torch
 import torchaudio
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
@@ -61,7 +62,16 @@ class FineTunedTranscriber:
         Transcribe an audio file, resampling to 16kHz mono as needed.
         """
 
-        waveform, sample_rate = torchaudio.load(audio_path)
+        # Read with soundfile (libsndfile) instead of torchaudio.load(),
+        # which now requires the separate torchcodec package for
+        # decoding. soundfile handles plain WAV files directly.
+        audio_np, sample_rate = sf.read(
+            audio_path,
+            dtype="float32",
+            always_2d=True,
+        )
+
+        waveform = torch.from_numpy(audio_np.T)
 
         if waveform.shape[0] > 1:
             waveform = waveform.mean(dim=0, keepdim=True)
