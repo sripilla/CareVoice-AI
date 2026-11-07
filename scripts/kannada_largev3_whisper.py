@@ -37,8 +37,13 @@ class KannadaLargeV3Transcriber:
     def __init__(self):
         self.processor = WhisperProcessor.from_pretrained(MODEL_NAME)
 
+        # This checkpoint's weights are stored in float16 (its model
+        # card's example runs on GPU). Force float32 on load so the
+        # weights match our float32 audio input - float16 also isn't
+        # a useful/always-supported optimization on CPU anyway.
         self.model = WhisperForConditionalGeneration.from_pretrained(
-            MODEL_NAME
+            MODEL_NAME,
+            torch_dtype=torch.float32,
         )
 
         self.model.eval()
