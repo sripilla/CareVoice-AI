@@ -58,12 +58,22 @@ class KannadaLargeV3Transcriber:
                 max_new_tokens=1,
             )
         except ValueError:
-            # Incomplete generation_config (missing lang_to_id/
-            # task_to_id/is_multilingual) - same issue as the
-            # vasista22 fine-tunes. Fall back to large-v3's config.
-            self.model.generation_config = (
-                GenerationConfig.from_pretrained(BASE_GENERATION_CONFIG)
+            # Incomplete generation_config - missing exactly
+            # lang_to_id/task_to_id/is_multilingual (per the
+            # upstream transformers issue this error message points
+            # to). Patch only those specific fields in from large-v3,
+            # keeping this checkpoint's own decoder_start_token_id,
+            # suppress_tokens, max_length, etc. untouched. Wholesale
+            # replacing the whole generation_config (an earlier
+            # attempt) caused decoding to collapse into repeating a
+            # single token - this checkpoint needs its OWN special
+            # tokens, just the missing language/task mappings added.
+            base_config = GenerationConfig.from_pretrained(
+                BASE_GENERATION_CONFIG
             )
+            self.model.generation_config.is_multilingual = True
+            self.model.generation_config.lang_to_id = base_config.lang_to_id
+            self.model.generation_config.task_to_id = base_config.task_to_id
 
     def transcribe(self, audio_path: str) -> str:
         """
