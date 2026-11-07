@@ -8,6 +8,7 @@ Models (community fine-tunes by vasista22, Apache-2.0):
     Kannada: vasista22/whisper-kannada-medium (no "large" variant
              exists for Kannada from this author, so this is the
              best available size)
+    Tamil:   vasista22/whisper-tamil-large-v2
 """
 
 import soundfile as sf
@@ -22,6 +23,7 @@ from transformers import (
 FINETUNED_MODELS = {
     "te": "vasista22/whisper-telugu-large-v2",
     "kn": "vasista22/whisper-kannada-medium",
+    "ta": "vasista22/whisper-tamil-large-v2",
 }
 
 # These fine-tunes predate transformers' newer generate(language=...)
@@ -34,6 +36,7 @@ FINETUNED_MODELS = {
 BASE_GENERATION_CONFIGS = {
     "te": "openai/whisper-large-v2",
     "kn": "openai/whisper-medium",
+    "ta": "openai/whisper-large-v2",
 }
 
 TARGET_SAMPLE_RATE = 16000

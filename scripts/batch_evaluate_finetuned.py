@@ -1,7 +1,8 @@
 """
 Batch evaluation using language-specific fine-tuned Whisper models
-(Telugu and Kannada only), for comparison against the baseline
-large-v3 results from batch_evaluate_telugu.py / batch_evaluate_kannada.py.
+(Telugu, Kannada, and Tamil only - the languages with a fine-tune
+available), for comparison against the baseline large-v3 results from
+batch_evaluate_telugu.py / batch_evaluate_kannada.py / batch_evaluate_tamil.py.
 
 Writes results to reports/batch_evaluation_finetuned/<language>/,
 separate from the baseline results directory, so both can be compared
@@ -43,6 +44,7 @@ def evaluate_finetuned(languages: list[str]) -> list[dict]:
         expected_code = {
             "telugu": "te",
             "kannada": "kn",
+            "tamil": "ta",
         }.get(language)
 
         if expected_code not in FINETUNED_MODELS:
@@ -131,7 +133,7 @@ def evaluate_finetuned(languages: list[str]) -> list[dict]:
 
 
 if __name__ == "__main__":
-    languages_to_run = ["telugu", "kannada"]
+    languages_to_run = ["telugu", "kannada", "tamil"]
 
     results = evaluate_finetuned(languages_to_run)
 
